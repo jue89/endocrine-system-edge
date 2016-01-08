@@ -69,11 +69,15 @@ describe( "Class HormoneSource", function() {
 
 	it( "should create new hormone", ( done ) => {
 
-		let h = new HormoneSource( pki.key, d, {
+		let data = {
 			'String': "test",
 			'Number': 123,
 			'Boolean': true
-		} );
+		};
+
+		let h = new HormoneSource( pki.key, d, data );
+
+		assert.deepEqual( h.data, data );
 
 		done();
 
