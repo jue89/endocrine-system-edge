@@ -12,7 +12,7 @@ let pki = require( './pki.js' );
 let dIn = new DefinitionSource( pki.key, {
 	cert: pki.cert,
 	description: "Test Definition",
-	check: "err=0;",
+	check: "err=Number;",
 	freshness: 1,
 	dataFormat: [ {
 		name: "String",
@@ -70,6 +70,8 @@ describe( "Class HormoneSink", function() {
 		} );
 
 		assert.equal( h.payload, payload );
+
+		assert.equal( h.error, 123 );
 
 		assert.deepEqual( h.definition, d.data );
 
