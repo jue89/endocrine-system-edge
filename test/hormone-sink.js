@@ -71,6 +71,8 @@ describe( "Class HormoneSink", function() {
 
 		assert.equal( h.payload, payload );
 
+		assert.deepEqual( h.definition, d.data );
+
 		done();
 	} );
 

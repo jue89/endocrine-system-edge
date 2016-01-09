@@ -79,6 +79,8 @@ describe( "Class HormoneSource", function() {
 
 		assert.deepEqual( h.data, data );
 
+		assert.deepEqual( h.definition, d.data );
+
 		done();
 
 	} );
