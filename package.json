@@ -15,6 +15,7 @@
     "json-gate": "^0.8.22"
   },
   "devDependencies": {
-    "mocha": "^2.3.4"
+    "mocha": "^2.3.4",
+    "mockery": "^1.4.0"
   }
 }

@@ -1,34 +1,58 @@
 "use strict";
 
 let assert = require( 'assert' );
+let mockery = require( 'mockery' );
 
-var DefinitionSource = require( '../lib/definition-source.js' );
-var HormoneSource = require( '../lib/hormone-source.js' );
 let pki = require( './pki.js' );
 
 
-let d = new DefinitionSource( pki.key, {
-	cert: pki.cert,
-	description: "Test Definition",
-	check: "err=0;",
-	freshness: 1,
-	dataFormat: [ {
-		name: "String",
-		type: 'string',
-		description: "Funny stuff"
-	}, {
-		name: "Boolean",
-		type: 'boolean'
-	}, {
-		name: "Number",
-		type: 'number',
-		unit: "V"
-	} ]
-} );
-
-
 describe( "Class HormoneSource", function() {
-	this.timeout(3000);
+
+	let time, definition;
+	let HormoneSource;
+
+	before( () => {
+
+		mockery.enable( {
+			useCleanCache: true,
+			warnOnReplace: false,
+			warnOnUnregistered: false
+		} );
+
+		// Install all mocks
+		let TimeMock = require( './mocks/time.js' );
+		mockery.registerMock( './time.js', new TimeMock( 1452974164 ) );
+
+		// require all librarys required for tests
+		let DefinitionSource = require( '../lib/definition-source.js' );
+		HormoneSource = require( '../lib/hormone-source.js' );
+		time = require( './time.js' );
+		definition = new DefinitionSource( pki.key, {
+			cert: pki.cert,
+			description: "Test Definition",
+			check: "err=0;",
+			freshness: 1,
+			dataFormat: [ {
+				name: "String",
+				type: 'string',
+				description: "Funny stuff"
+			}, {
+				name: "Boolean",
+				type: 'boolean'
+			}, {
+				name: "Number",
+				type: 'number',
+				unit: "V"
+			} ]
+		} );
+
+	} );
+
+	after( () => {
+
+		mockery.disable();
+
+	} );
 
 	it( "should not create new hormone due to missing private key", ( done ) => {
 		try {
@@ -49,7 +73,7 @@ describe( "Class HormoneSource", function() {
 	it( "should not create new hormone due to missing data", ( done ) => {
 		try {
 
-			let h = new HormoneSource( pki.key, d );
+			let h = new HormoneSource( pki.key, definition );
 
 		} catch( e ) { /*console.log(e);*/ done(); }
 	} );
@@ -57,7 +81,7 @@ describe( "Class HormoneSource", function() {
 	it( "should not create new definition due to unkown option", ( done ) => {
 		try {
 
-			let h = new HormoneSource( pki.key, d, {
+			let h = new HormoneSource( pki.key, definition, {
 				'String': "test",
 				'Number': 123,
 				'Boolean': true,
@@ -75,11 +99,11 @@ describe( "Class HormoneSource", function() {
 			'Boolean': true
 		};
 
-		let h = new HormoneSource( pki.key, d, data );
+		let h = new HormoneSource( pki.key, definition, data );
 
 		assert.deepEqual( h.data, data );
 
-		assert.deepEqual( h.definition, d.data );
+		assert.deepEqual( h.definition, definition.data );
 
 		done();
 
@@ -87,7 +111,7 @@ describe( "Class HormoneSource", function() {
 
 	it( "should create new fresh hormone", ( done ) => {
 
-		let h = new HormoneSource( pki.key, d, {
+		let h = new HormoneSource( pki.key, definition, {
 			'String': "test",
 			'Number': 123,
 			'Boolean': true
@@ -101,19 +125,17 @@ describe( "Class HormoneSource", function() {
 
 	it( "should create new expired hormone", ( done ) => {
 
-		let h = new HormoneSource( pki.key, d, {
+		let h = new HormoneSource( pki.key, definition, {
 			'String': "test",
 			'Number': 123,
 			'Boolean': true
 		} );
 
-		setTimeout( () => {
+		time.addSeconds( 3 );
 
-			assert.equal( h.isFresh, false );
+		assert.equal( h.isFresh, false );
 
-			done();
-
-		}, 2500 );
+		done();
 
 	} );
 
