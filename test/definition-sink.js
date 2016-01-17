@@ -2,11 +2,18 @@
 
 let assert = require( 'assert' );
 
-let DefinitionSink = require( '../lib/definition-sink.js' );
-let pki = require( './mocks/pki.js' );
-
 
 describe( "Class DefinitionSink", () => {
+
+	let pki;
+	let DefinitionSink;
+
+	before( () => {
+
+		DefinitionSink = require( '../lib/definition-sink.js' );
+		pki = require( './mocks/pki.js' );
+
+	} );
 
 	it( "should complain about empty data", ( done ) => {
 		try {
