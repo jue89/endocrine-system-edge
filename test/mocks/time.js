@@ -15,6 +15,10 @@ class TimeMock {
 		this.timestamp += seconds;
 	}
 
+	set( timestamp ) {
+		this.timestamp = timestamp;
+	}
+
 }
 
 

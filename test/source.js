@@ -13,7 +13,7 @@ describe( "Class Source", () => {
 		let pki = require( './mocks/pki.js' );
 
 		let ESMock = require( './mocks/es.js' );
-		es = new ESMock( pki.key, pki.cert );
+		es = new ESMock( pki.key, pki.cert, pki.ca );
 
 		Source = require( '../lib/source.js' );
 
@@ -57,7 +57,7 @@ describe( "Class Source", () => {
 
 		s.on( 'defined', () => {
 			try {
-				assert.equal( es._lastChannel, 'definition/test' );
+				assert.equal( es._lastTopic, 'definition/test' );
 				s.send( { test: true } );
 			} catch( e ) {
 				done( new Error( "Nope!" ) );

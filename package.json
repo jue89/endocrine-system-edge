@@ -12,7 +12,8 @@
   "author": "Jue <me@jue.yt>",
   "license": "MIT",
   "dependencies": {
-    "json-gate": "^0.8.22"
+    "json-gate": "^0.8.22",
+    "pem": "^1.8.1"
   },
   "devDependencies": {
     "mocha": "^2.3.4",
