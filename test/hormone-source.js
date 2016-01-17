@@ -3,12 +3,10 @@
 let assert = require( 'assert' );
 let mockery = require( 'mockery' );
 
-let pki = require( './mocks/pki.js' );
 
+describe( "Class HormoneSource", () => {
 
-describe( "Class HormoneSource", function() {
-
-	let time, definition;
+	let time, pki, definition;
 	let HormoneSource;
 
 	before( () => {
@@ -24,9 +22,10 @@ describe( "Class HormoneSource", function() {
 		mockery.registerMock( './time.js', new TimeMock( 1452974164 ) );
 
 		// require all librarys required for tests
-		let DefinitionSource = require( '../lib/definition-source.js' );
-		HormoneSource = require( '../lib/hormone-source.js' );
+		pki = require( './mocks/pki.js' );
 		time = require( './time.js' );
+		HormoneSource = require( '../lib/hormone-source.js' );
+		let DefinitionSource = require( '../lib/definition-source.js' );
 		definition = new DefinitionSource( pki.key, {
 			cert: pki.cert,
 			description: "Test Definition",
