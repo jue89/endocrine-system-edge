@@ -2,11 +2,18 @@
 
 let assert = require( 'assert' );
 
-let DefinitionSource = require( '../lib/definition-source.js' );
-let pki = require( './mocks/pki.js' );
-
 
 describe( "Class DefinitionSource", () => {
+
+	let pki;
+	let DefinitionSource;
+
+	before( () => {
+
+		DefinitionSource = require( '../lib/definition-source.js' );
+		pki = require( './mocks/pki.js' );
+
+	} );
 
 	it( "should not create new definition due to missing private key", ( done ) => {
 		try {
