@@ -1,7 +1,7 @@
 {
-  "name": "es-core",
+  "name": "es-edge",
   "version": "0.0.0",
-  "description": "Endocrine System Core",
+  "description": "Endocrine System Edge",
   "main": "index.js",
   "directories": {
     "test": "test"
