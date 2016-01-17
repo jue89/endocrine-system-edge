@@ -76,6 +76,8 @@ describe( "Class HormoneSink", () => {
 
 		assert.equal( h.error, 123 );
 
+		assert.equal( h.timestamp, 1452029627 );
+
 		assert.deepEqual( h.definition, definition.data );
 
 		done();
