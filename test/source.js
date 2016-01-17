@@ -2,28 +2,22 @@
 
 let assert = require( 'assert' );
 
-let Source = require( '../lib/source.js' );
-let pki = require( './pki.js' );
-
-class ESdummy {
-
-	constructor( key, cert ) {
-		this._key = key;
-		this._cert = cert;
-	}
-
-	_publish( channel, payload ) {
-		this._lastChannel = channel;
-		this._lastPayload = payload;
-		return Promise.resolve();
-	}
-
-}
-
-let es = new ESdummy( pki.key, pki.cert );
-
 
 describe( "Class Source", () => {
+
+	let es;
+	let Source;
+
+	before( () => {
+
+		let pki = require( './mocks/pki.js' );
+
+		let ESMock = require( './mocks/es.js' );
+		es = new ESMock( pki.key, pki.cert );
+
+		Source = require( '../lib/source.js' );
+
+	} );
 
 	it( "should not create new source due to missing name", ( done ) => {
 		try {
