@@ -3,7 +3,7 @@
 let assert = require( 'assert' );
 
 let DefinitionSink = require( '../lib/definition-sink.js' );
-let pki = require( './pki.js' );
+let pki = require( './mocks/pki.js' );
 
 
 describe( "Class DefinitionSink", () => {

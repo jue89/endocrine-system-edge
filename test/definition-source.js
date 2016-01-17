@@ -3,7 +3,7 @@
 let assert = require( 'assert' );
 
 let DefinitionSource = require( '../lib/definition-source.js' );
-let pki = require( './pki.js' );
+let pki = require( './mocks/pki.js' );
 
 
 describe( "Class DefinitionSource", () => {

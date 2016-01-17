@@ -3,7 +3,7 @@
 let assert = require( 'assert' );
 let mockery = require( 'mockery' );
 
-let pki = require( './pki.js' );
+let pki = require( './mocks/pki.js' );
 
 
 describe( "Class HormoneSource", function() {

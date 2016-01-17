@@ -3,7 +3,7 @@
 let assert = require( 'assert' );
 
 let Source = require( '../lib/source.js' );
-let pki = require( './pki.js' );
+let pki = require( './mocks/pki.js' );
 
 class ESdummy {
 
