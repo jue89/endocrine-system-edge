@@ -16,6 +16,7 @@
     "pem": "^1.8.1"
   },
   "devDependencies": {
-    "mocha": "^2.3.4"
+    "mocha": "^2.3.4",
+    "mockery": "^1.4.0"
   }
 }
