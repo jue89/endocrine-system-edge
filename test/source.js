@@ -1,6 +1,7 @@
 "use strict";
 
 let assert = require( 'assert' );
+let mockery = require( 'mockery' );
 
 
 describe( "Class Source", () => {
@@ -10,12 +11,29 @@ describe( "Class Source", () => {
 
 	before( () => {
 
+		mockery.enable( {
+			useCleanCache: true,
+			warnOnReplace: false,
+			warnOnUnregistered: false
+		} );
+
+		// Install all mocks
+		let TimeMock = require( './mocks/time.js' );
+		let ESMock = require( './mocks/es.js' );
+		mockery.registerMock( './es.js', ESMock );
+		mockery.registerMock( './time.js', new TimeMock( 1452974164 ) );
+
 		let pki = require( './mocks/pki.js' );
 
-		let ESMock = require( './mocks/es.js' );
 		es = new ESMock( pki.key, pki.cert, pki.ca );
 
 		Source = require( '../lib/source.js' );
+
+	} );
+
+	after( () => {
+
+		mockery.disable();
 
 	} );
 
