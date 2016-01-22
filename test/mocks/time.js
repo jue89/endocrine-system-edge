@@ -5,10 +5,15 @@ class TimeMock {
 
 	constructor( timestamp ) {
 		this.timestamp = timestamp;
+		this.drift = 0;
 	}
 
 	now() {
 		return this.timestamp;
+	}
+
+	getDrift() {
+		return Promise.resolve( this.drift );
 	}
 
 	addSeconds( seconds ) {
@@ -17,6 +22,10 @@ class TimeMock {
 
 	set( timestamp ) {
 		this.timestamp = timestamp;
+	}
+
+	setDrift( drift ) {
+		this.drift = drift;
 	}
 
 }
