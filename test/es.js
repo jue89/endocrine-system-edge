@@ -67,7 +67,8 @@ describe( "Class EndocrineSystem", function() {
 			broker: 'mqtts://127.0.0.1:8888',
 			cert: pki.otherCert,
 			key: pki.key,
-			ca: pki.ca
+			ca: pki.ca,
+			rejectUnauthorized: false
 		} );
 
 		es._publish( 't', 't' ).catch( ( e ) => { /*console.log( e );*/ done(); } );
@@ -80,7 +81,8 @@ describe( "Class EndocrineSystem", function() {
 			broker: 'mqtts://127.0.0.1:8888',
 			cert: pki.otherCert,
 			key: pki.otherKey,
-			ca: pki.ca
+			ca: pki.ca,
+			rejectUnauthorized: false
 		} );
 
 		es._publish( 't', 't' ).catch( ( e ) => { /*console.log( e );*/ done(); } );
@@ -95,7 +97,8 @@ describe( "Class EndocrineSystem", function() {
 			broker: 'mqtts://127.0.0.1:8888',
 			cert: pki.cert,
 			key: pki.key,
-			ca: pki.ca
+			ca: pki.ca,
+			rejectUnauthorized: false
 		} );
 
 		es._publish( 't', 't' ).catch( ( e ) => { /*console.log( e );*/ done(); } );
@@ -111,7 +114,8 @@ describe( "Class EndocrineSystem", function() {
 			cert: pki.cert,
 			key: pki.key,
 			ca: pki.ca,
-			ignoreTimedrift: true
+			ignoreTimedrift: true,
+			rejectUnauthorized: false
 		} );
 
 		es._publish( 't', 't' ).then( () => done() );
@@ -126,7 +130,8 @@ describe( "Class EndocrineSystem", function() {
 			broker: 'mqtts://127.0.0.1:8887',
 			cert: pki.cert,
 			key: pki.key,
-			ca: pki.ca
+			ca: pki.ca,
+			rejectUnauthorized: false
 		} );
 
 		es._publish( 't', 't' ).then( () => done( new Error( "This shouldn't happen") ) );
@@ -141,7 +146,8 @@ describe( "Class EndocrineSystem", function() {
 			broker: 'mqtts://127.0.0.1:8888',
 			cert: pki.cert,
 			key: pki.key,
-			ca: pki.ca
+			ca: pki.ca,
+			rejectUnauthorized: false
 		} );
 
 		es.on( 'online', () => {
@@ -168,7 +174,8 @@ describe( "Class EndocrineSystem", function() {
 			broker: 'mqtts://127.0.0.1:8888',
 			cert: pki.cert,
 			key: pki.key,
-			ca: pki.ca
+			ca: pki.ca,
+			rejectUnauthorized: false
 		} );
 
 		es.once( 'online', () => {
@@ -209,7 +216,8 @@ describe( "Class EndocrineSystem", function() {
 			broker: 'mqtts://127.0.0.1:8888',
 			cert: pki.cert,
 			key: pki.key,
-			ca: pki.ca
+			ca: pki.ca,
+			rejectUnauthorized: false
 		} );
 
 		es._subscribe( 'test/+/test', ( topic, message ) => {
