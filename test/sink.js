@@ -19,15 +19,21 @@ describe( "Class Sink", () => {
 
 		// Install all mocks
 		let TimeMock = require( './mocks/time.js' );
+		let ESMock = require( './mocks/es.js' );
+		mockery.registerMock( './es.js', ESMock );
 		mockery.registerMock( './time.js', new TimeMock( 1452974164 ) );
 
 		let pki = require( './mocks/pki.js' );
 		time = require( './time.js' );
-
-		let ESMock = require( './mocks/es.js' );
 		es = new ESMock( pki.key, pki.cert, pki.ca );
 
 		Sink = require( '../lib/sink.js' );
+
+	} );
+
+	after( () => {
+
+		mockery.disable();
 
 	} );
 

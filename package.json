@@ -13,10 +13,13 @@
   "license": "MIT",
   "dependencies": {
     "json-gate": "^0.8.22",
+    "mqtt": "^1.6.3",
+    "ntp-client": "^0.5.3",
     "pem": "^1.8.1"
   },
   "devDependencies": {
     "mocha": "^2.3.4",
-    "mockery": "^1.4.0"
+    "mockery": "^1.4.0",
+    "mosca": "^1.0.2"
   }
 }
