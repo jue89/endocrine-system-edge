@@ -20,6 +20,10 @@ describe( "Class EndocrineSystem", function() {
 		// Install all mocks
 		let TimeMock = require( './mocks/time.js' );
 		mockery.registerMock( './time.js', new TimeMock( 1452974164 ) );
+		let SourceMock = require( './mocks/source.js' );
+		mockery.registerMock( './source.js', SourceMock );
+		let SinkMock = require( './mocks/sink.js' );
+		mockery.registerMock( './sink.js', SinkMock );
 
 		// Require all librarys required for tests
 		EndocrineSystem = require( '../lib/es.js' );
