@@ -1,15 +1,59 @@
 "use strict";
 
 let assert = require( 'assert' );
+let mockery = require( 'mockery' );
 
 
-describe( "Class EndocrineSystem", function() => {
+describe( "Class EndocrineSystem", function() {
+
+	let time, pki, broker;
+	let EndocrineSystem;
 
 	before( ( done ) => {
+
+		mockery.enable( {
+			useCleanCache: true,
+			warnOnReplace: false,
+			warnOnUnregistered: false
+		} );
+
+		// Install all mocks
+		let TimeMock = require( './mocks/time.js' );
+		mockery.registerMock( './time.js', new TimeMock( 1452974164 ) );
+
+		// Require all librarys required for tests
+		EndocrineSystem = require( '../lib/es.js' );
+		pki = require( './mocks/pki.js' );
+		time = require( './time.js' );
+		let fs = require( 'fs' );
+		let tmpdir = require( 'os' ).tmpdir();
+		fs.writeFileSync( tmpdir + '/es-edge-key.pem', pki.serverKey );
+		fs.writeFileSync( tmpdir + '/es-edge-cert.pem', pki.serverCert );
+		fs.writeFileSync( tmpdir + '/es-edge-ca.pem', pki.ca );
+		let mosca = require( 'mosca' );
+		broker = new mosca.Server( {
+			interfaces: [ {
+				type: 'mqtts',
+				port: 8888,
+				host: '127.0.0.1',
+				credentials: {
+					keyPath: tmpdir + '/es-edge-key.pem',
+					certPath: tmpdir + '/es-edge-cert.pem',
+					caPath: [ tmpdir + '/es-edge-ca.pem' ],
+					requestCert: true,
+					rejectUnauthorized: false
+				}
+			} ],
+			persistence: { factory: mosca.persistence.Memory }
+		}, done );
 
 	} );
 
 	after( ( done ) => {
+
+		mockery.disable();
+
+		broker.close( done );
 
 	} );
 
