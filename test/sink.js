@@ -309,6 +309,39 @@ describe( "Class Sink", () => {
 
 	} );
 
+	it( "should ignore duplicate hormones", ( done ) => {
+
+		let hormoneHandler;
+
+		// Set subscription handler
+		es._onsub[ 'definition/test' ] = function( handler ) {
+			setImmediate( () => { handler(
+				'definition/test',
+				'{"cert":"-----BEGIN CERTIFICATE-----\\nMIIC0TCCAjoCAQEwDQYJKoZIhvcNAQEFBQAwdzELMAkGA1UEBhMCREUxDDAKBgNV\\nBAgMA05EUzERMA8GA1UEBwwISGFubm92ZXIxITAfBgNVBAoMGEludGVybmV0IFdp\\nZGdpdHMgUHR5IEx0ZDEkMCIGA1UEAwwbSW50ZXJuZXQgV2lkZ2l0cyBQdHkgTHRk\\nIENBMB4XDTE1MDExODE3NDU1NFoXDTE4MDExNzE3NDU1NFowZzELMAkGA1UEBhMC\\nREUxDDAKBgNVBAgMA05EUzERMA8GA1UEBwwISGFubm92ZXIxITAfBgNVBAoMGElu\\ndGVybmV0IFdpZGdpdHMgUHR5IEx0ZDEUMBIGA1UEAwwLVGVzdCBDbGllbnQwggEi\\nMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQC99vbZtOQwJPLv4po5DUpT3ZSm\\nnFlejCttofbITXCFujNqJQRX9/glpG3upsyv2ghpo24uzBgAdiOUiWNZLs/BIzkq\\nhe8mJNpnIAIQrwA1Hu/cb/mi/533gPD1rV4QOeJRkDxEY/KaZkFQvoRyUpYY64Kl\\n/pJvRqfHCzWnFpZKjsO9jc6V4soNNXlqd0sx/qvk/o3NHpDPRuKwQq7fI7Ur1srw\\n1K2DIvlasJPFf/cYrmZEhijyPrTq/RHsYcKJzHDj/WvWhW3vtG/7d7nVuRn58f/H\\n7wA2bj64UyA7xnSAta5KGEIW2bgrcYG3ajjTVL3rZzj971bKfPJeUQC+tNl/AgMB\\nAAEwDQYJKoZIhvcNAQEFBQADgYEAmjOmAyYbyZN75E7a5kjR7SP5ZQ+NUPiREZNa\\n3aH28pIDvxncv4UZBqeSFjRuyQ7BBBiyVaMak3Q9eoFYDsF9fMsVyipqV27H4vzb\\nIoHF1xEDFxCydSOeJ7WC2uCCEpGF7HJkqXa3X/BRdOMDCxGymCtDA5MGTcDxVM0I\\nnLBk9W4=\\n-----END CERTIFICATE-----","description":"Test Definition","check":"err=Number;","freshness":1,"dataFormat":[{"name":"String","type":"string","description":"Funny stuff"},{"name":"Boolean","type":"boolean"},{"name":"Number","type":"number","unit":"V"}]}\nXsP0iKDG1bVIDarsJoQdSlRRZBpNHt/S3yPZi0o86TyfbIX7oYV3cgmTdjBIWqZuKrXQEw6aehhjlIQZgvAULIHPPOGHtdWED1BgTckibTD5VlAaOUCKx+ruip7/kuOymyyh1UzaZvt0BrXpkTTGf81XmmqtJ8BLx/KlMosy+Gh3WgDXk5kdIltE92Jt9P0KnUsBnD1wqTZyPgx9mhi0XNO6aiKC/JpdknvsA/bhTRmQMU6PXmvdHtAQrwt5zMSHKgclAfkiTeOHfHvVfbLgOn2LsJh9FSKFAlR6AFAu+Ezd10Fi1/9XjjE7c5pzM+Xq6gty+1xj/N9WZJtO7vFzxw=='
+			); } );
+			return Promise.resolve();
+		};
+		let payload = '1452029627\ntest\n1\n123\nRf/2W8SMf/xMyUKkukkST6ueXvaOlxILGBqIK4rv67R1GMrvbQPeCGDPl//iVYRqnbkgmmR86eLsNSwdnnJvxTMv2RP1j0nq4j7ezCzNc4tEch8XusY+KBOcXh4irp7BYQZzNcvMhNHKN9AmE1VrUvofDQfGl/AGshEGSJCMRN7yph9Uw6nyTCMrZghbG4hUR9Da1BD3pP6NALf8ybJNHc+VK8A2lO+cMG0lFZp3XBRknJ47dVSdvjC6JjH9acmAl8e8c2SAFyVVG0tFlNrOh5nX362Zeam5LF+I0irMCNlXzmYU1F07M2Eb/R4D5vjZSF/G+0jYJb6RKzIayY1wWQ==';
+		es._onsub[ 'hormone/test' ] = function( handler ) {
+			setImmediate( () => { handler( 'hormone/test', payload ); } );
+			hormoneHandler = handler
+			return Promise.resolve();
+		};
+
+		let s = new Sink( es, 'test' );
+
+		s.on( 'receiveError', done );
+		s.on( 'error', done );
+
+		s.once( 'hormone', ( name, hormone ) => {
+			// Emit the hormone a second time
+			hormoneHandler( 'hormone/test', payload );
+			s.once( 'hormone', () => done( new Error("Nope") ) );
+			setTimeout( done, 200 );
+		} );
+
+	} );
+
 	it( "should receive a hormone and emit the hormoneError event", ( done ) => {
 
 		let s = new Sink( es, 'test' );
