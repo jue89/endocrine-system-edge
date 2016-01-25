@@ -67,9 +67,9 @@ describe( "Class HormoneSink", () => {
 		let h = new HormoneSink( definition, payload );
 
 		assert.deepEqual( h.data, {
-			'String':  { 'value': "test" },
-			'Number':  { 'value': 123, 'unit': "V" },
-			'Boolean': { 'value': true }
+			'String':  "test",
+			'Number':  123,
+			'Boolean': true
 		} );
 
 		assert.equal( h.payload, payload );
@@ -78,7 +78,7 @@ describe( "Class HormoneSink", () => {
 
 		assert.equal( h.timestamp, 1452029627 );
 
-		assert.deepEqual( h.definition, definition.data );
+		assert.deepEqual( h.definition.data, definition.data );
 
 		done();
 

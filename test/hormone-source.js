@@ -104,7 +104,7 @@ describe( "Class HormoneSource", () => {
 
 		assert.equal( h.timestamp, 1452974164 );
 
-		assert.deepEqual( h.definition, definition.data );
+		assert.deepEqual( h.definition.data, definition.data );
 
 		done();
 

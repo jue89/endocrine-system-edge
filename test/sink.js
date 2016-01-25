@@ -280,9 +280,9 @@ describe( "Class Sink", () => {
 			try {
 				assert.equal( name, 'test' );
 				assert.deepEqual( hormone.data, {
-					'String':  { 'value': "test" },
-					'Number':  { 'value': 123, 'unit': "V" },
-					'Boolean': { 'value': true }
+					'String':  "test",
+					'Number':  123,
+					'Boolean': true
 				} );
 				assert.equal( s.hormones.length, 1 );
 				assert.equal( s.expiredHormones.length, 1 );
@@ -296,9 +296,26 @@ describe( "Class Sink", () => {
 					err: 123,
 					isFresh: false,
 					data: {
-						'String':  { 'value': "test" },
-						'Number':  { 'value': 123, 'unit': "V" },
-						'Boolean': { 'value': true }
+						'String':  "test",
+						'Number':  123,
+						'Boolean': true
+					},
+					dataFormat: {
+						'String': {
+							type: 'string',
+							unit: null,
+							description: "Funny stuff"
+						},
+						'Boolean': {
+							type: 'boolean',
+							unit: null,
+							description: null
+						},
+						'Number': {
+							type: 'number',
+							unit: "V",
+							description: null
+						}
 					}
 				} )
 			} catch( e ) {
@@ -354,9 +371,9 @@ describe( "Class Sink", () => {
 				assert.equal( name, 'test' );
 				assert.equal( hormone.error, 123 );
 				assert.deepEqual( hormone.data, {
-					'String':  { 'value': "test" },
-					'Number':  { 'value': 123, 'unit': "V" },
-					'Boolean': { 'value': true }
+					'String':  "test",
+					'Number':  123,
+					'Boolean': true
 				} );
 			} catch( e ) {
 				done( e );
