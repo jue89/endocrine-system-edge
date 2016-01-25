@@ -116,7 +116,7 @@ describe( "Class DefinitionSource", () => {
 			} ]
 		} );
 
-		d.inputDataSchema.validate( {
+		d.dataSchema.validate( {
 			'String': "test",
 			'Number': 123,
 			'Boolean': true
