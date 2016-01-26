@@ -7,7 +7,8 @@
     "test": "test"
   },
   "scripts": {
-    "test": "mocha"
+    "test": "mocha",
+    "pretest": "jshint *.js lib/*.js"
   },
   "author": "Jue <me@jue.yt>",
   "license": "MIT",
@@ -18,8 +19,15 @@
     "pem": "^1.8.1"
   },
   "devDependencies": {
+    "jshint": "^2.9.1",
     "mocha": "^2.3.4",
     "mockery": "^1.4.0",
     "mosca": "^1.0.2"
+  },
+  "jshintConfig": {
+    "esversion": 6,
+    "node": true,
+    "strict": true,
+    "varstmt": true
   }
 }
