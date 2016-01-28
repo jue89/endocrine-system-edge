@@ -6,7 +6,7 @@ let mockery = require( 'mockery' );
 
 describe( "Class HormoneSource", () => {
 
-	let time, pki, definition;
+	let time, pki, data, definition;
 	let HormoneSource;
 
 	before( () => {
@@ -19,31 +19,16 @@ describe( "Class HormoneSource", () => {
 
 		// Install all mocks
 		let TimeMock = require( './mocks/time.js' );
-		mockery.registerMock( './time.js', new TimeMock( 1452974164 ) );
+		mockery.registerMock( './time.js', new TimeMock( 1452974164020 ) );
 
 		// require all librarys required for tests
 		pki = require( './mocks/pki.js' );
+		data = require( './mocks/data.js' );
 		time = require( './time.js' );
 		HormoneSource = require( '../lib/hormone-source.js' );
 		let DefinitionSource = require( '../lib/definition-source.js' );
-		definition = new DefinitionSource( pki.key, {
-			cert: pki.cert,
-			description: "Test Definition",
-			check: "err=0;",
-			freshness: 1,
-			dataFormat: [ {
-				name: "String",
-				type: 'string',
-				description: "Funny stuff"
-			}, {
-				name: "Boolean",
-				type: 'boolean'
-			}, {
-				name: "Number",
-				type: 'number',
-				unit: "V"
-			} ]
-		} );
+		// TODO: Maybe it's a good idea to mock definition class
+		definition = new DefinitionSource( pki.key, data.max.definition.data );
 
 	} );
 
@@ -80,31 +65,33 @@ describe( "Class HormoneSource", () => {
 	it( "should not create new definition due to unkown option", ( done ) => {
 		try {
 
-			let h = new HormoneSource( pki.key, definition, {
-				'String': "test",
-				'Number': 123,
-				'Boolean': true,
-				'Unkown': 1
-			} );
+			let h = new HormoneSource( pki.key, definition, data.max.hormone[0].dataUnkownOption );
 
 		} catch( e ) { /*console.log(e);*/ done(); }
 	} );
 
 	it( "should create new hormone", ( done ) => {
 
-		let data = {
-			'String': "test",
-			'Number': 123,
-			'Boolean': true
-		};
+		let h = new HormoneSource( pki.key, definition, data.max.hormone[0].data );
 
-		let h = new HormoneSource( pki.key, definition, data );
+		assert.deepStrictEqual( h.payload, data.max.hormone[0].payload );
+		assert.deepStrictEqual( h.data, data.max.hormone[0].data );
+		assert.deepStrictEqual( h.timestamp, data.max.hormone[0].timestamp );
+		assert.deepStrictEqual( h.definition.data, definition.data );
 
-		assert.deepEqual( h.data, data );
+		done();
 
-		assert.equal( h.timestamp, 1452974164 );
+	} );
 
-		assert.deepEqual( h.definition.data, definition.data );
+	it( "should create new erroneous hormone", ( done ) => {
+
+		let h = new HormoneSource( pki.key, definition, data.max.hormoneErr[0].data );
+
+		assert.deepStrictEqual( h.payload, data.max.hormoneErr[0].payload );
+		assert.deepStrictEqual( h.data, data.max.hormoneErr[0].data );
+		assert.deepStrictEqual( h.timestamp, data.max.hormoneErr[0].timestamp );
+		assert.deepStrictEqual( h.error, data.max.hormoneErr[0].data.Number );
+		assert.deepStrictEqual( h.definition.data, definition.data );
 
 		done();
 
@@ -112,13 +99,12 @@ describe( "Class HormoneSource", () => {
 
 	it( "should create new fresh hormone", ( done ) => {
 
-		let h = new HormoneSource( pki.key, definition, {
-			'String': "test",
-			'Number': 123,
-			'Boolean': true
-		} );
+		time.set( data.max.hormone[0].timestamp )
 
-		assert.equal( h.isFresh, true );
+		let h = new HormoneSource( pki.key, definition, data.max.hormone[0].data );
+
+		assert.strictEqual( h.freshness, 1 );
+		assert.strictEqual( h.isFresh, true );
 
 		done();
 
@@ -126,15 +112,12 @@ describe( "Class HormoneSource", () => {
 
 	it( "should create new expired hormone", ( done ) => {
 
-		let h = new HormoneSource( pki.key, definition, {
-			'String': "test",
-			'Number': 123,
-			'Boolean': true
-		} );
+		let h = new HormoneSource( pki.key, definition, data.max.hormone[0].data );
 
-		time.addSeconds( 3 );
+		time.set( data.max.hormone[0].timestamp + 3000 )
 
-		assert.equal( h.isFresh, false );
+		assert.strictEqual( h.freshness, -2 );
+		assert.strictEqual( h.isFresh, false );
 
 		done();
 

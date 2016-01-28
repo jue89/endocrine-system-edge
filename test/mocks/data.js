@@ -60,17 +60,24 @@ module.exports = {
 			}
 		},
 		hormone: [ {
-			timestamp: 0,
-			payload: '',
+			timestamp: 1452974164020,
+			payload: '1452974164020\ntest\n1\n0\np49kAHUKHoSUysIf0yxiMDqBfwhs5EWGUVwNid85KcsudPquPPwAZG+3y56X5nP8cwN9yzlCgesl7y+cFBQ7vTBIuqVoOBVAx9Q37IQ8zGodBWkqDg0S193eclYDgubLjMHU54/xYFXLF8ivvqsD0npgUZcXndeBUnR2JVrnQ9kMh6PgbUvyaC85AjaUdWyG6zCOgCLRWO7bP9J0BKGwombF28TumTRtXlEU4Qjgn5GCeJlpzI4s0Qb4oiHUOoZWacunptGVZhyNvcZ5D0MrW0PbH3COLiXnPu1Ygw48hxAZhIL7e2Bu3/AlcY/S5zFYSSzXGaCVSRJ6H6BjD0LAxw==',
+			payloadWrongSignature: '1452974164020\ntest\n1\n0\np49kAHUKHoSUysIf0yxiMDqBfwhs5EWGUVwNid85KcsudPquPPwAZG+3y56X5nP8cwN9yzlCgesl7y+cFBQ7vTBIuqVoOBVAx9Q37IQ8zGodBWkqDg0S193eclYDgubLjMHU54/xYFXLF8ivvqsD0npgUZcXndeBUnR2JVrnQ9kMh6PgbUvyaC85AjaUdWyG6zCOgCLRWO7bP9J0BKGwombF28TumTRtXlEU4Qjgn5GCeJlpzI4s0Qb4oiHUOoZWacunptGVZhyNvcZ5D0MrW0PbH3COLiXnPu1Ygw49hxAZhIL7e2Bu3/AlcY/S5zFYSSzXGaCVSRJ6H6BjD0LAxw==',
 			data: {
 				'String': "test",
 				'Number': 0,
 				'Boolean': true
+			},
+			dataUnkownOption: {
+				'String': "test",
+				'Number': 0,
+				'Boolean': true,
+				'Unkown': 1
 			}
 		} ],
 		hormoneErr: [ {
-			timestamp: 0,
-			payload: '',
+			timestamp: 1452974164020,
+			payload: '1452974164020\ntest\n1\n1\nrL88t4VRBzZWi1e8fubqXwfO6emcbCZ2DFd5TkutKoThNCx7THRJ08pRKrmyVYxTAxdh6my0CM/DLkN/GN8mf9HH9VZTtYCK2wKY48VjFrjbLseu1jIEfw8Kn7B+zIixkmjPJ6MlHdCUkmor/xAUp/KORW/riqtKVnkHWqvCFbTpFrKj8Y+tDjQKJEHl96UzctGCosBypvZWpVWyh4g8migp97nICEcHp8FI+y0J9Rk2uncMn/SP+OHIuYIF3NNH5sP37COdWXLc6wSMYYmjJFNg/nsLB8fDweLs56oc7V8DJ5H0sPQrGTjtdGRTlkCm3oLo0tSnTiIJnFzsoQAjPA==',
 			data: {
 				'String': "test",
 				'Number': 1,
