@@ -16,10 +16,6 @@ class TimeMock {
 		return Promise.resolve( this.drift );
 	}
 
-	addSeconds( seconds ) {
-		this.timestamp += seconds;
-	}
-
 	set( timestamp ) {
 		this.timestamp = timestamp;
 	}

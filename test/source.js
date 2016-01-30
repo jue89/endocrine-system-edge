@@ -6,7 +6,7 @@ let mockery = require( 'mockery' );
 
 describe( "Class Source", () => {
 
-	let es;
+	let es, data;
 	let Source;
 
 	before( () => {
@@ -21,11 +21,12 @@ describe( "Class Source", () => {
 		let TimeMock = require( './mocks/time.js' );
 		let ESMock = require( './mocks/es.js' );
 		mockery.registerMock( './es.js', ESMock );
-		mockery.registerMock( './time.js', new TimeMock( 1452974164 ) );
+		mockery.registerMock( './time.js', new TimeMock( 1452974164020 ) );
 
 		let pki = require( './mocks/pki.js' );
 
 		es = new ESMock( pki.key, pki.cert, pki.ca );
+		data = require( './mocks/data.js' );
 
 		Source = require( '../lib/source.js' );
 
@@ -90,32 +91,68 @@ describe( "Class Source", () => {
 
 	it( "should create source with autoRefresh, no hormone data", ( done ) => {
 
-		let s = new Source( es, 'test', { freshness: 2, autoRefresh: true } );
+		let config = {}; Object.assign( config, data.min.config );
+		let s = new Source( es, data.min.name, config );
+
 		s.on( 'sent', () => {
-			done();
-			s.destroy();
+
+			try {
+				assert.strictEqual( es._lastTopic, 'hormone/' + data.min.name );
+				assert.strictEqual( es._lastPayload, data.min.hormone[0].payload );
+				s.destroy();
+				done();
+			} catch( e ) {
+				done( e );
+			}
+
 		} );
 
 	} );
 
 	it( "should create source with autoRefresh, with hormone data, but don't emit due to missing data", ( done ) => {
 
-		let s = new Source( es, 'test', { freshness: 2, autoRefresh: true, dataFormat: [ { name: 'test', type: 'boolean' } ] } );
+		let config = {}; Object.assign( config, data.max.config );
+		let s = new Source( es, data.max.name, config );
+
 		s.on( 'sent', () => {
 			done( new Error( "This should not happen!" ) );
 		} );
 
-		setTimeout( done, 1500 );
+		setTimeout( () => {
+			s.destroy();
+			done();
+		}, 1000 );
 
 	} );
 
 	it( "should create source with autoRefresh, with hormone data", ( done ) => {
 
-		let s = new Source( es, 'test', { freshness: 2, autoRefresh: true, dataFormat: [ { name: 'test', type: 'boolean' } ] } );
-		s.send( { test: true } ).then( () => {
-			s.on( 'sent', () => {
-				done();
+		let config = {}; Object.assign( config, data.max.config );
+		let s = new Source( es, data.max.name, config );
+		s.on( 'defined', () => {
+			s.send( data.max.hormone[0].data ).then( () => {
+
+				try{
+					assert.strictEqual( es._lastTopic, 'hormone/' + data.max.name );
+					assert.strictEqual( es._lastPayload, data.max.hormone[0].payload );
+
+					s.on( 'sent', () => {
+						try{
+							assert.strictEqual( es._lastTopic, 'hormone/' + data.max.name );
+							assert.strictEqual( es._lastPayload, data.max.hormone[0].payload );
+							s.destroy();
+							done();
+						} catch( e ) {
+							done( e );
+						}
+
+					} );
+				} catch( e ) {
+					done( e );
+				}
+
 			} );
+
 		} );
 
 	} );
