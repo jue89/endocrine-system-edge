@@ -72,6 +72,8 @@ describe( "Class HormoneSource", () => {
 
 	it( "should create new hormone", ( done ) => {
 
+		time.set( data.max.hormone[0].timestamp );
+
 		let h = new HormoneSource( pki.key, definition, data.max.hormone[0].data );
 
 		assert.deepStrictEqual( h.payload, data.max.hormone[0].payload );
@@ -84,6 +86,8 @@ describe( "Class HormoneSource", () => {
 	} );
 
 	it( "should create new erroneous hormone", ( done ) => {
+
+		time.set( data.max.hormoneErr[0].timestamp );
 
 		let h = new HormoneSource( pki.key, definition, data.max.hormoneErr[0].data );
 
@@ -99,7 +103,7 @@ describe( "Class HormoneSource", () => {
 
 	it( "should create new fresh hormone", ( done ) => {
 
-		time.set( data.max.hormone[0].timestamp )
+		time.set( data.max.hormone[0].timestamp );
 
 		let h = new HormoneSource( pki.key, definition, data.max.hormone[0].data );
 
@@ -112,9 +116,11 @@ describe( "Class HormoneSource", () => {
 
 	it( "should create new expired hormone", ( done ) => {
 
+		time.set( data.max.hormone[0].timestamp );
+
 		let h = new HormoneSource( pki.key, definition, data.max.hormone[0].data );
 
-		time.set( data.max.hormone[0].timestamp + 3000 )
+		time.set( data.max.hormone[0].timestamp + 3000 );
 
 		assert.strictEqual( h.freshness, -2 );
 		assert.strictEqual( h.isFresh, false );
