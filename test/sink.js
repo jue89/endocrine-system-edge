@@ -6,7 +6,7 @@ let mockery = require( 'mockery' );
 
 describe( "Class Sink", () => {
 
-	let time, es;
+	let time, es, data;
 	let Sink;
 
 	before( () => {
@@ -21,10 +21,11 @@ describe( "Class Sink", () => {
 		let TimeMock = require( './mocks/time.js' );
 		let ESMock = require( './mocks/es.js' );
 		mockery.registerMock( './es.js', ESMock );
-		mockery.registerMock( './time.js', new TimeMock( 1452974164 ) );
+		mockery.registerMock( './time.js', new TimeMock( 1452974164020 ) );
 
 		let pki = require( './mocks/pki.js' );
 		time = require( './time.js' );
+		data = require( './mocks/data.js' );
 		es = new ESMock( pki.key, pki.cert, pki.ca );
 
 		Sink = require( '../lib/sink.js' );
@@ -64,70 +65,96 @@ describe( "Class Sink", () => {
 	it( "should throw an error if subscription to es fails", ( done ) => {
 
 		// Set subscription handler
-		es._onsub[ 'definition/test' ] = function() { return Promise.reject(); }
+		es._onsub[ 'definition/' + data.min.name ] = function() { return Promise.reject(); };
 
-		let s = new Sink( es, 'test' );
+		let s = new Sink( es, data.min.name );
 		s.on( 'error', ( err ) => {
 			done();
-		} )
+		} );
 
 	} );
 
 	it( "should reject a received definition due to cert validity in future", ( done ) => {
 
 		// Set subscription handler
-		es._onsub[ 'definition/test' ] = function( handler ) {
-			setImmediate( () => { handler(
-				'definition/test',
-				'{"cert":"-----BEGIN CERTIFICATE-----\\nMIIC0TCCAjoCAQEwDQYJKoZIhvcNAQEFBQAwdzELMAkGA1UEBhMCREUxDDAKBgNV\\nBAgMA05EUzERMA8GA1UEBwwISGFubm92ZXIxITAfBgNVBAoMGEludGVybmV0IFdp\\nZGdpdHMgUHR5IEx0ZDEkMCIGA1UEAwwbSW50ZXJuZXQgV2lkZ2l0cyBQdHkgTHRk\\nIENBMB4XDTE1MDExODE3NDU1NFoXDTE4MDExNzE3NDU1NFowZzELMAkGA1UEBhMC\\nREUxDDAKBgNVBAgMA05EUzERMA8GA1UEBwwISGFubm92ZXIxITAfBgNVBAoMGElu\\ndGVybmV0IFdpZGdpdHMgUHR5IEx0ZDEUMBIGA1UEAwwLVGVzdCBDbGllbnQwggEi\\nMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQC99vbZtOQwJPLv4po5DUpT3ZSm\\nnFlejCttofbITXCFujNqJQRX9/glpG3upsyv2ghpo24uzBgAdiOUiWNZLs/BIzkq\\nhe8mJNpnIAIQrwA1Hu/cb/mi/533gPD1rV4QOeJRkDxEY/KaZkFQvoRyUpYY64Kl\\n/pJvRqfHCzWnFpZKjsO9jc6V4soNNXlqd0sx/qvk/o3NHpDPRuKwQq7fI7Ur1srw\\n1K2DIvlasJPFf/cYrmZEhijyPrTq/RHsYcKJzHDj/WvWhW3vtG/7d7nVuRn58f/H\\n7wA2bj64UyA7xnSAta5KGEIW2bgrcYG3ajjTVL3rZzj971bKfPJeUQC+tNl/AgMB\\nAAEwDQYJKoZIhvcNAQEFBQADgYEAmjOmAyYbyZN75E7a5kjR7SP5ZQ+NUPiREZNa\\n3aH28pIDvxncv4UZBqeSFjRuyQ7BBBiyVaMak3Q9eoFYDsF9fMsVyipqV27H4vzb\\nIoHF1xEDFxCydSOeJ7WC2uCCEpGF7HJkqXa3X/BRdOMDCxGymCtDA5MGTcDxVM0I\\nnLBk9W4=\\n-----END CERTIFICATE-----","description":"Test Definition","check":"err=Number;","freshness":1,"dataFormat":[{"name":"String","type":"string","description":"Funny stuff"},{"name":"Boolean","type":"boolean"},{"name":"Number","type":"number","unit":"V"}]}\nXsP0iKDG1bVIDarsJoQdSlRRZBpNHt/S3yPZi0o86TyfbIX7oYV3cgmTdjBIWqZuKrXQEw6aehhjlIQZgvAULIHPPOGHtdWED1BgTckibTD5VlAaOUCKx+ruip7/kuOymyyh1UzaZvt0BrXpkTTGf81XmmqtJ8BLx/KlMosy+Gh3WgDXk5kdIltE92Jt9P0KnUsBnD1wqTZyPgx9mhi0XNO6aiKC/JpdknvsA/bhTRmQMU6PXmvdHtAQrwt5zMSHKgclAfkiTeOHfHvVfbLgOn2LsJh9FSKFAlR6AFAu+Ezd10Fi1/9XjjE7c5pzM+Xq6gty+1xj/N9WZJtO7vFzxw=='
-			) } );
+		es._onsub[ 'definition/' + data.min.name ] = function( handler ) {
+			setImmediate( () => handler(
+				'definition/' + data.min.name,
+				data.min.definition.payload
+			) );
 			return Promise.resolve();
 		};
 
-		time.set( 1421603153 );
+		// Set time
+		time.set( data.min.definition.validity.start - 1 );
 
-		let s = new Sink( es, 'test' );
+		let s = new Sink( es, data.min.name );
 
 		s.on( 'receiveError', ( e ) => {
 			/*console.log(e);*/
 			done();
-		} )
+		} );
 
 	} );
 
 	it( "should reject a received definition due to cert validity in past", ( done ) => {
 
-		time.set( 1516211155 );
+		// Set subscription handler
+		es._onsub[ 'definition/' + data.min.name ] = function( handler ) {
+			setImmediate( () => handler(
+				'definition/' + data.min.name,
+				data.min.definition.payload
+			) );
+			return Promise.resolve();
+		};
 
-		let s = new Sink( es, 'test' );
+		// Set time
+		time.set( data.min.definition.validity.end + 1 );
+
+		let s = new Sink( es, data.min.name );
 
 		s.on( 'receiveError', ( e ) => {
 			/*console.log(e);*/
 			done();
-		} )
+		} );
 
 	} );
 
 	it( "should reject a received definition due to cert check function", ( done ) => {
 
-		time.set( 1452974164 );
+		// Set subscription handler
+		es._onsub[ 'definition/' + data.min.name ] = function( handler ) {
+			setImmediate( () => handler(
+				'definition/' + data.min.name,
+				data.min.definition.payload
+			) );
+			return Promise.resolve();
+		};
 
-		let s = new Sink( es, 'test', ( name, cert ) => {
+		// Set time
+		time.set( data.min.definition.validity.end );
+
+		let s = new Sink( es, data.min.name, ( name, cert ) => {
 
 			try {
-				assert.equal( name, 'test' );
-				assert.equal( cert.commonName, 'Test Client' );
+				assert.strictEqual( name, data.min.name );
+				assert.strictEqual( cert.commonName, 'Test Client' );
 			} catch( e ) {
 				done( e );
 			}
 
-			return Promise.reject();
+			return Promise.reject( new Error( "Nope" ) );
 
 		} );
 
 		s.on( 'receiveError', ( err ) => {
 
-			done();
+			try {
+				assert.strictEqual( err.message, "Nope" );
+				done();
+			} catch( e ) {
+				done( e );
+			}
 
 		} );
 
@@ -138,64 +165,67 @@ describe( "Class Sink", () => {
 		let defHandler;
 
 		// Set subscription handler
-		es._onsub[ 'definition/test' ] = function( handler ) {
-			setImmediate( () => { handler(
-				'definition/test',
-				'{"cert":"-----BEGIN CERTIFICATE-----\\nMIIC0TCCAjoCAQEwDQYJKoZIhvcNAQEFBQAwdzELMAkGA1UEBhMCREUxDDAKBgNV\\nBAgMA05EUzERMA8GA1UEBwwISGFubm92ZXIxITAfBgNVBAoMGEludGVybmV0IFdp\\nZGdpdHMgUHR5IEx0ZDEkMCIGA1UEAwwbSW50ZXJuZXQgV2lkZ2l0cyBQdHkgTHRk\\nIENBMB4XDTE1MDExODE3NDU1NFoXDTE4MDExNzE3NDU1NFowZzELMAkGA1UEBhMC\\nREUxDDAKBgNVBAgMA05EUzERMA8GA1UEBwwISGFubm92ZXIxITAfBgNVBAoMGElu\\ndGVybmV0IFdpZGdpdHMgUHR5IEx0ZDEUMBIGA1UEAwwLVGVzdCBDbGllbnQwggEi\\nMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQC99vbZtOQwJPLv4po5DUpT3ZSm\\nnFlejCttofbITXCFujNqJQRX9/glpG3upsyv2ghpo24uzBgAdiOUiWNZLs/BIzkq\\nhe8mJNpnIAIQrwA1Hu/cb/mi/533gPD1rV4QOeJRkDxEY/KaZkFQvoRyUpYY64Kl\\n/pJvRqfHCzWnFpZKjsO9jc6V4soNNXlqd0sx/qvk/o3NHpDPRuKwQq7fI7Ur1srw\\n1K2DIvlasJPFf/cYrmZEhijyPrTq/RHsYcKJzHDj/WvWhW3vtG/7d7nVuRn58f/H\\n7wA2bj64UyA7xnSAta5KGEIW2bgrcYG3ajjTVL3rZzj971bKfPJeUQC+tNl/AgMB\\nAAEwDQYJKoZIhvcNAQEFBQADgYEAmjOmAyYbyZN75E7a5kjR7SP5ZQ+NUPiREZNa\\n3aH28pIDvxncv4UZBqeSFjRuyQ7BBBiyVaMak3Q9eoFYDsF9fMsVyipqV27H4vzb\\nIoHF1xEDFxCydSOeJ7WC2uCCEpGF7HJkqXa3X/BRdOMDCxGymCtDA5MGTcDxVM0I\\nnLBk9W4=\\n-----END CERTIFICATE-----","description":"Test Definition","check":"err=Number;","freshness":1,"dataFormat":[{"name":"String","type":"string","description":"Funny stuff"},{"name":"Boolean","type":"boolean"},{"name":"Number","type":"number","unit":"V"}]}\nXsP0iKDG1bVIDarsJoQdSlRRZBpNHt/S3yPZi0o86TyfbIX7oYV3cgmTdjBIWqZuKrXQEw6aehhjlIQZgvAULIHPPOGHtdWED1BgTckibTD5VlAaOUCKx+ruip7/kuOymyyh1UzaZvt0BrXpkTTGf81XmmqtJ8BLx/KlMosy+Gh3WgDXk5kdIltE92Jt9P0KnUsBnD1wqTZyPgx9mhi0XNO6aiKC/JpdknvsA/bhTRmQMU6PXmvdHtAQrwt5zMSHKgclAfkiTeOHfHvVfbLgOn2LsJh9FSKFAlR6AFAu+Ezd10Fi1/9XjjE7c5pzM+Xq6gty+1xj/N9WZJtO7vFzxw=='
-			); } );
+		es._onsub[ 'definition/' + data.min.name ] = function( handler ) {
+			setImmediate( () => handler(
+				'definition/' + data.min.name,
+				data.min.definition.payload
+			) );
 			defHandler = handler;
 			return Promise.resolve();
 		};
 
-		let s = new Sink( es, 'test' );
+		let s = new Sink( es, data.min.name );
 
 		s.on( 'subscribe', ( name, definition ) => {
 			try {
-				assert.equal( name, 'test' );
-				assert.equal( definition.data.description, 'Test Definition' );
+				assert.strictEqual( name, data.min.name );
+				assert.deepStrictEqual( definition.data, data.min.definition.data );
+
+				// Send empty message to remove definition
+				defHandler( 'definition/' + data.min.name, '' );
 			} catch( e ) {
 				done( e );
 			}
-			// Send empty message to remove definition
-			defHandler( 'definition/test', '' );
 		} );
 
 		s.on( 'unsubscribe', ( name ) => {
 			try {
-				assert.equal( name, 'test' );
+				assert.strictEqual( name, data.min.name );
+				done();
 			} catch( e ) {
 				done( e );
 			}
-			done();
 		} );
 
 	} );
 
 	it( "should receive a definition, emit subscribe event and then receive the same definition again ignoring it silently", ( done ) => {
 
-		let payload = '{"cert":"-----BEGIN CERTIFICATE-----\\nMIIC0TCCAjoCAQEwDQYJKoZIhvcNAQEFBQAwdzELMAkGA1UEBhMCREUxDDAKBgNV\\nBAgMA05EUzERMA8GA1UEBwwISGFubm92ZXIxITAfBgNVBAoMGEludGVybmV0IFdp\\nZGdpdHMgUHR5IEx0ZDEkMCIGA1UEAwwbSW50ZXJuZXQgV2lkZ2l0cyBQdHkgTHRk\\nIENBMB4XDTE1MDExODE3NDU1NFoXDTE4MDExNzE3NDU1NFowZzELMAkGA1UEBhMC\\nREUxDDAKBgNVBAgMA05EUzERMA8GA1UEBwwISGFubm92ZXIxITAfBgNVBAoMGElu\\ndGVybmV0IFdpZGdpdHMgUHR5IEx0ZDEUMBIGA1UEAwwLVGVzdCBDbGllbnQwggEi\\nMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQC99vbZtOQwJPLv4po5DUpT3ZSm\\nnFlejCttofbITXCFujNqJQRX9/glpG3upsyv2ghpo24uzBgAdiOUiWNZLs/BIzkq\\nhe8mJNpnIAIQrwA1Hu/cb/mi/533gPD1rV4QOeJRkDxEY/KaZkFQvoRyUpYY64Kl\\n/pJvRqfHCzWnFpZKjsO9jc6V4soNNXlqd0sx/qvk/o3NHpDPRuKwQq7fI7Ur1srw\\n1K2DIvlasJPFf/cYrmZEhijyPrTq/RHsYcKJzHDj/WvWhW3vtG/7d7nVuRn58f/H\\n7wA2bj64UyA7xnSAta5KGEIW2bgrcYG3ajjTVL3rZzj971bKfPJeUQC+tNl/AgMB\\nAAEwDQYJKoZIhvcNAQEFBQADgYEAmjOmAyYbyZN75E7a5kjR7SP5ZQ+NUPiREZNa\\n3aH28pIDvxncv4UZBqeSFjRuyQ7BBBiyVaMak3Q9eoFYDsF9fMsVyipqV27H4vzb\\nIoHF1xEDFxCydSOeJ7WC2uCCEpGF7HJkqXa3X/BRdOMDCxGymCtDA5MGTcDxVM0I\\nnLBk9W4=\\n-----END CERTIFICATE-----","description":"Test Definition","check":"err=Number;","freshness":1,"dataFormat":[{"name":"String","type":"string","description":"Funny stuff"},{"name":"Boolean","type":"boolean"},{"name":"Number","type":"number","unit":"V"}]}\nXsP0iKDG1bVIDarsJoQdSlRRZBpNHt/S3yPZi0o86TyfbIX7oYV3cgmTdjBIWqZuKrXQEw6aehhjlIQZgvAULIHPPOGHtdWED1BgTckibTD5VlAaOUCKx+ruip7/kuOymyyh1UzaZvt0BrXpkTTGf81XmmqtJ8BLx/KlMosy+Gh3WgDXk5kdIltE92Jt9P0KnUsBnD1wqTZyPgx9mhi0XNO6aiKC/JpdknvsA/bhTRmQMU6PXmvdHtAQrwt5zMSHKgclAfkiTeOHfHvVfbLgOn2LsJh9FSKFAlR6AFAu+Ezd10Fi1/9XjjE7c5pzM+Xq6gty+1xj/N9WZJtO7vFzxw==';
-
 		let defHandler;
 
 		// Set subscription handler
-		es._onsub[ 'definition/test' ] = function( handler ) {
-			setImmediate( () => { handler( 'definition/test', payload ) } );
+		es._onsub[ 'definition/' + data.min.name ] = function( handler ) {
+			setImmediate( () => handler(
+				'definition/' + data.min.name,
+				data.min.definition.payload
+			) );
 			defHandler = handler;
 			return Promise.resolve();
 		};
 
-		let s = new Sink( es, 'test' );
+		let s = new Sink( es, data.min.name );
 
 		s.on( 'subscribe', ( name, definition ) => {
 			try {
-				assert.equal( name, 'test' );
-				assert.equal( definition.data.description, 'Test Definition' );
+				assert.strictEqual( name, data.min.name );
+				assert.deepStrictEqual( definition.data, data.min.definition.data );
 
+				// Send definition again
+				defHandler( 'definition/' + data.min.name, data.min.definition.payload );
 			} catch( e ) {
 				done( e );
 			}
-			// Send definition again
-			defHandler( 'definition/test', payload );
+
 		} );
 
 		s.on( 'unsubscribe', ( name ) => {
@@ -204,8 +234,9 @@ describe( "Class Sink", () => {
 
 		s.on( 'refresh', ( name, definition ) => {
 			try {
-				assert.equal( name, 'test' );
-				assert.equal( definition.data.description, 'Test Definition' );
+				assert.strictEqual( name, data.min.name );
+				assert.deepStrictEqual( definition.data, data.min.definition.data );
+
 				done();
 			} catch( e ) {
 				done( e );
@@ -216,30 +247,31 @@ describe( "Class Sink", () => {
 
 	it( "should receive a definition, emit subscribe event and then receive a modified definition again", ( done ) => {
 
-		let payload1 = '{"cert":"-----BEGIN CERTIFICATE-----\\nMIIC0TCCAjoCAQEwDQYJKoZIhvcNAQEFBQAwdzELMAkGA1UEBhMCREUxDDAKBgNV\\nBAgMA05EUzERMA8GA1UEBwwISGFubm92ZXIxITAfBgNVBAoMGEludGVybmV0IFdp\\nZGdpdHMgUHR5IEx0ZDEkMCIGA1UEAwwbSW50ZXJuZXQgV2lkZ2l0cyBQdHkgTHRk\\nIENBMB4XDTE1MDExODE3NDU1NFoXDTE4MDExNzE3NDU1NFowZzELMAkGA1UEBhMC\\nREUxDDAKBgNVBAgMA05EUzERMA8GA1UEBwwISGFubm92ZXIxITAfBgNVBAoMGElu\\ndGVybmV0IFdpZGdpdHMgUHR5IEx0ZDEUMBIGA1UEAwwLVGVzdCBDbGllbnQwggEi\\nMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQC99vbZtOQwJPLv4po5DUpT3ZSm\\nnFlejCttofbITXCFujNqJQRX9/glpG3upsyv2ghpo24uzBgAdiOUiWNZLs/BIzkq\\nhe8mJNpnIAIQrwA1Hu/cb/mi/533gPD1rV4QOeJRkDxEY/KaZkFQvoRyUpYY64Kl\\n/pJvRqfHCzWnFpZKjsO9jc6V4soNNXlqd0sx/qvk/o3NHpDPRuKwQq7fI7Ur1srw\\n1K2DIvlasJPFf/cYrmZEhijyPrTq/RHsYcKJzHDj/WvWhW3vtG/7d7nVuRn58f/H\\n7wA2bj64UyA7xnSAta5KGEIW2bgrcYG3ajjTVL3rZzj971bKfPJeUQC+tNl/AgMB\\nAAEwDQYJKoZIhvcNAQEFBQADgYEAmjOmAyYbyZN75E7a5kjR7SP5ZQ+NUPiREZNa\\n3aH28pIDvxncv4UZBqeSFjRuyQ7BBBiyVaMak3Q9eoFYDsF9fMsVyipqV27H4vzb\\nIoHF1xEDFxCydSOeJ7WC2uCCEpGF7HJkqXa3X/BRdOMDCxGymCtDA5MGTcDxVM0I\\nnLBk9W4=\\n-----END CERTIFICATE-----","description":"Test Definition","check":"err=Number;","freshness":1,"dataFormat":[{"name":"String","type":"string","description":"Funny stuff"},{"name":"Boolean","type":"boolean"},{"name":"Number","type":"number","unit":"V"}]}\nXsP0iKDG1bVIDarsJoQdSlRRZBpNHt/S3yPZi0o86TyfbIX7oYV3cgmTdjBIWqZuKrXQEw6aehhjlIQZgvAULIHPPOGHtdWED1BgTckibTD5VlAaOUCKx+ruip7/kuOymyyh1UzaZvt0BrXpkTTGf81XmmqtJ8BLx/KlMosy+Gh3WgDXk5kdIltE92Jt9P0KnUsBnD1wqTZyPgx9mhi0XNO6aiKC/JpdknvsA/bhTRmQMU6PXmvdHtAQrwt5zMSHKgclAfkiTeOHfHvVfbLgOn2LsJh9FSKFAlR6AFAu+Ezd10Fi1/9XjjE7c5pzM+Xq6gty+1xj/N9WZJtO7vFzxw==';
-
-		let payload2 = '{"cert":"-----BEGIN CERTIFICATE-----\\nMIIC0TCCAjoCAQEwDQYJKoZIhvcNAQEFBQAwdzELMAkGA1UEBhMCREUxDDAKBgNV\\nBAgMA05EUzERMA8GA1UEBwwISGFubm92ZXIxITAfBgNVBAoMGEludGVybmV0IFdp\\nZGdpdHMgUHR5IEx0ZDEkMCIGA1UEAwwbSW50ZXJuZXQgV2lkZ2l0cyBQdHkgTHRk\\nIENBMB4XDTE1MDExODE3NDU1NFoXDTE4MDExNzE3NDU1NFowZzELMAkGA1UEBhMC\\nREUxDDAKBgNVBAgMA05EUzERMA8GA1UEBwwISGFubm92ZXIxITAfBgNVBAoMGElu\\ndGVybmV0IFdpZGdpdHMgUHR5IEx0ZDEUMBIGA1UEAwwLVGVzdCBDbGllbnQwggEi\\nMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQC99vbZtOQwJPLv4po5DUpT3ZSm\\nnFlejCttofbITXCFujNqJQRX9/glpG3upsyv2ghpo24uzBgAdiOUiWNZLs/BIzkq\\nhe8mJNpnIAIQrwA1Hu/cb/mi/533gPD1rV4QOeJRkDxEY/KaZkFQvoRyUpYY64Kl\\n/pJvRqfHCzWnFpZKjsO9jc6V4soNNXlqd0sx/qvk/o3NHpDPRuKwQq7fI7Ur1srw\\n1K2DIvlasJPFf/cYrmZEhijyPrTq/RHsYcKJzHDj/WvWhW3vtG/7d7nVuRn58f/H\\n7wA2bj64UyA7xnSAta5KGEIW2bgrcYG3ajjTVL3rZzj971bKfPJeUQC+tNl/AgMB\\nAAEwDQYJKoZIhvcNAQEFBQADgYEAmjOmAyYbyZN75E7a5kjR7SP5ZQ+NUPiREZNa\\n3aH28pIDvxncv4UZBqeSFjRuyQ7BBBiyVaMak3Q9eoFYDsF9fMsVyipqV27H4vzb\\nIoHF1xEDFxCydSOeJ7WC2uCCEpGF7HJkqXa3X/BRdOMDCxGymCtDA5MGTcDxVM0I\\nnLBk9W4=\\n-----END CERTIFICATE-----","dataFormat":[]}\n Uacoxv+4vJAjmuZSvwvQU1j2rOr/7J7NzIXoO64yXixYyS2z5/ob+O83bsCVJ9TXX3uSHPeuoQithNDswgg9Bn4cFKuAXJxpCAZcKucncLUkzC0OAiDuZGS6WSdZ61FfAyZ4NLiP1DbV9L951BPKTo65HdunwQzy8o156fy90Qyo8FDdDAUKk6SJKXWFA4RpB4SqoLri8smOKTsE7Sj5KcOqSrGI0nJA3QglAKNn43PRAGxfs84d9rHH6ViF7ucIQTyUmOM71j3aEgr+HRiLjfAxMV3aES7aLCH/wtmu0CTZaVHL6HuD0qD/Bgg+K7KBYvEvIZ1FFdWorWp7nwjUFA==';
-
 		let defHandler;
 
 		// Set subscription handler
-		es._onsub[ 'definition/test' ] = function( handler ) {
-			setImmediate( () => { handler( 'definition/test', payload1 ) } );
+		es._onsub[ 'definition/' + data.min.name ] = function( handler ) {
+			setImmediate( () => handler(
+				'definition/' + data.min.name,
+				data.min.definition.payload
+			) );
 			defHandler = handler;
 			return Promise.resolve();
 		};
 
-		let s = new Sink( es, 'test' );
+		let s = new Sink( es, data.min.name );
 
 		s.once( 'subscribe', ( name, definition ) => {
 			try {
-				assert.equal( name, 'test' );
-				assert.equal( definition.data.description, 'Test Definition' );
+				assert.strictEqual( name, data.min.name );
+				assert.deepStrictEqual( definition.data, data.min.definition.data );
+
+				// Send new definition
+				defHandler( 'definition/' + data.min.name, data.max.definition.payload );
 			} catch( e ) {
 				done( e );
 			}
-			// Send new definition
-			defHandler( 'definition/test', payload2 );
+
 
 			// Try to observe unsubscribe and subscribe again
 			let unsub = false;
@@ -256,72 +288,51 @@ describe( "Class Sink", () => {
 	it( "should receive a hormone, emit the hormone event and expose the hormone", ( done ) => {
 
 		// Set subscription handler
-		es._onsub[ 'definition/test' ] = function( handler ) {
-			setImmediate( () => { handler(
-				'definition/test',
-				'{"cert":"-----BEGIN CERTIFICATE-----\\nMIIC0TCCAjoCAQEwDQYJKoZIhvcNAQEFBQAwdzELMAkGA1UEBhMCREUxDDAKBgNV\\nBAgMA05EUzERMA8GA1UEBwwISGFubm92ZXIxITAfBgNVBAoMGEludGVybmV0IFdp\\nZGdpdHMgUHR5IEx0ZDEkMCIGA1UEAwwbSW50ZXJuZXQgV2lkZ2l0cyBQdHkgTHRk\\nIENBMB4XDTE1MDExODE3NDU1NFoXDTE4MDExNzE3NDU1NFowZzELMAkGA1UEBhMC\\nREUxDDAKBgNVBAgMA05EUzERMA8GA1UEBwwISGFubm92ZXIxITAfBgNVBAoMGElu\\ndGVybmV0IFdpZGdpdHMgUHR5IEx0ZDEUMBIGA1UEAwwLVGVzdCBDbGllbnQwggEi\\nMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQC99vbZtOQwJPLv4po5DUpT3ZSm\\nnFlejCttofbITXCFujNqJQRX9/glpG3upsyv2ghpo24uzBgAdiOUiWNZLs/BIzkq\\nhe8mJNpnIAIQrwA1Hu/cb/mi/533gPD1rV4QOeJRkDxEY/KaZkFQvoRyUpYY64Kl\\n/pJvRqfHCzWnFpZKjsO9jc6V4soNNXlqd0sx/qvk/o3NHpDPRuKwQq7fI7Ur1srw\\n1K2DIvlasJPFf/cYrmZEhijyPrTq/RHsYcKJzHDj/WvWhW3vtG/7d7nVuRn58f/H\\n7wA2bj64UyA7xnSAta5KGEIW2bgrcYG3ajjTVL3rZzj971bKfPJeUQC+tNl/AgMB\\nAAEwDQYJKoZIhvcNAQEFBQADgYEAmjOmAyYbyZN75E7a5kjR7SP5ZQ+NUPiREZNa\\n3aH28pIDvxncv4UZBqeSFjRuyQ7BBBiyVaMak3Q9eoFYDsF9fMsVyipqV27H4vzb\\nIoHF1xEDFxCydSOeJ7WC2uCCEpGF7HJkqXa3X/BRdOMDCxGymCtDA5MGTcDxVM0I\\nnLBk9W4=\\n-----END CERTIFICATE-----","description":"Test Definition","check":"err=Number;","freshness":1,"dataFormat":[{"name":"String","type":"string","description":"Funny stuff"},{"name":"Boolean","type":"boolean"},{"name":"Number","type":"number","unit":"V"}]}\nXsP0iKDG1bVIDarsJoQdSlRRZBpNHt/S3yPZi0o86TyfbIX7oYV3cgmTdjBIWqZuKrXQEw6aehhjlIQZgvAULIHPPOGHtdWED1BgTckibTD5VlAaOUCKx+ruip7/kuOymyyh1UzaZvt0BrXpkTTGf81XmmqtJ8BLx/KlMosy+Gh3WgDXk5kdIltE92Jt9P0KnUsBnD1wqTZyPgx9mhi0XNO6aiKC/JpdknvsA/bhTRmQMU6PXmvdHtAQrwt5zMSHKgclAfkiTeOHfHvVfbLgOn2LsJh9FSKFAlR6AFAu+Ezd10Fi1/9XjjE7c5pzM+Xq6gty+1xj/N9WZJtO7vFzxw=='
-			); } );
+		es._onsub[ 'definition/' + data.max.name ] = function( handler ) {
+			setImmediate( () => handler(
+				'definition/' + data.max.name,
+				data.max.definition.payload
+			) );
 			return Promise.resolve();
 		};
-		es._onsub[ 'hormone/test' ] = function( handler ) {
-			setImmediate( () => { handler(
-				'hormone/test',
-				'1452029627\ntest\n1\n123\nRf/2W8SMf/xMyUKkukkST6ueXvaOlxILGBqIK4rv67R1GMrvbQPeCGDPl//iVYRqnbkgmmR86eLsNSwdnnJvxTMv2RP1j0nq4j7ezCzNc4tEch8XusY+KBOcXh4irp7BYQZzNcvMhNHKN9AmE1VrUvofDQfGl/AGshEGSJCMRN7yph9Uw6nyTCMrZghbG4hUR9Da1BD3pP6NALf8ybJNHc+VK8A2lO+cMG0lFZp3XBRknJ47dVSdvjC6JjH9acmAl8e8c2SAFyVVG0tFlNrOh5nX362Zeam5LF+I0irMCNlXzmYU1F07M2Eb/R4D5vjZSF/G+0jYJb6RKzIayY1wWQ=='
-			); } );
+		es._onsub[ 'hormone/' + data.max.name ] = function( handler ) {
+			setImmediate( () => handler(
+				'hormone/' + data.max.name,
+				data.max.hormone[0].payload
+			) );
 			return Promise.resolve();
 		};
 
-		let s = new Sink( es, 'test' );
+		// Set time
+		time.set( data.max.hormone[0].timestamp + 1000 );
+
+		let s = new Sink( es, data.max.name );
 
 		s.on( 'receiveError', done );
 		s.on( 'error', done );
 
 		s.on( 'hormone', ( name, hormone ) => {
 			try {
-				assert.equal( name, 'test' );
-				assert.deepEqual( hormone.data, {
-					'String':  "test",
-					'Number':  123,
-					'Boolean': true
+				assert.strictEqual( name, data.max.name );
+				assert.deepStrictEqual( hormone.data, data.max.hormone[0].data );
+				assert.strictEqual( s.hormones.length, 1 );
+				assert.strictEqual( s.expiredHormones.length, 0 );
+				assert.strictEqual( s.errorHormones.length, 0 );
+				assert.strictEqual( s.goodHormones.length, 1 );
+				assert.deepStrictEqual( s.hormones[0], {
+					name: data.max.name,
+					sentAt: data.max.hormone[0].timestamp,
+					receivedAt: data.max.hormone[0].timestamp + 1000,
+					stateChangedAt: data.max.hormone[0].timestamp + 1000,
+					err: 0,
+					isFresh: true,
+					data: data.max.hormone[0].data,
+					dataFormat: data.max.definition.dataFormat
 				} );
-				assert.equal( s.hormones.length, 1 );
-				assert.equal( s.expiredHormones.length, 1 );
-				assert.equal( s.errorHormones.length, 1 );
-				assert.equal( s.goodHormones.length, 0 );
-				assert.deepEqual( s.hormones[0], {
-					name: 'test',
-					sentAt: 1452029627,
-					receivedAt: 1452974164,
-					stateChangedAt: 1452974164,
-					err: 123,
-					isFresh: false,
-					data: {
-						'String':  "test",
-						'Number':  123,
-						'Boolean': true
-					},
-					dataFormat: {
-						'String': {
-							type: 'string',
-							unit: null,
-							description: "Funny stuff"
-						},
-						'Boolean': {
-							type: 'boolean',
-							unit: null,
-							description: null
-						},
-						'Number': {
-							type: 'number',
-							unit: "V",
-							description: null
-						}
-					}
-				} )
+				done();
 			} catch( e ) {
 				done( e );
 			}
-			done();
 		} );
 
 	} );
@@ -331,74 +342,160 @@ describe( "Class Sink", () => {
 		let hormoneHandler;
 
 		// Set subscription handler
-		es._onsub[ 'definition/test' ] = function( handler ) {
-			setImmediate( () => { handler(
-				'definition/test',
-				'{"cert":"-----BEGIN CERTIFICATE-----\\nMIIC0TCCAjoCAQEwDQYJKoZIhvcNAQEFBQAwdzELMAkGA1UEBhMCREUxDDAKBgNV\\nBAgMA05EUzERMA8GA1UEBwwISGFubm92ZXIxITAfBgNVBAoMGEludGVybmV0IFdp\\nZGdpdHMgUHR5IEx0ZDEkMCIGA1UEAwwbSW50ZXJuZXQgV2lkZ2l0cyBQdHkgTHRk\\nIENBMB4XDTE1MDExODE3NDU1NFoXDTE4MDExNzE3NDU1NFowZzELMAkGA1UEBhMC\\nREUxDDAKBgNVBAgMA05EUzERMA8GA1UEBwwISGFubm92ZXIxITAfBgNVBAoMGElu\\ndGVybmV0IFdpZGdpdHMgUHR5IEx0ZDEUMBIGA1UEAwwLVGVzdCBDbGllbnQwggEi\\nMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQC99vbZtOQwJPLv4po5DUpT3ZSm\\nnFlejCttofbITXCFujNqJQRX9/glpG3upsyv2ghpo24uzBgAdiOUiWNZLs/BIzkq\\nhe8mJNpnIAIQrwA1Hu/cb/mi/533gPD1rV4QOeJRkDxEY/KaZkFQvoRyUpYY64Kl\\n/pJvRqfHCzWnFpZKjsO9jc6V4soNNXlqd0sx/qvk/o3NHpDPRuKwQq7fI7Ur1srw\\n1K2DIvlasJPFf/cYrmZEhijyPrTq/RHsYcKJzHDj/WvWhW3vtG/7d7nVuRn58f/H\\n7wA2bj64UyA7xnSAta5KGEIW2bgrcYG3ajjTVL3rZzj971bKfPJeUQC+tNl/AgMB\\nAAEwDQYJKoZIhvcNAQEFBQADgYEAmjOmAyYbyZN75E7a5kjR7SP5ZQ+NUPiREZNa\\n3aH28pIDvxncv4UZBqeSFjRuyQ7BBBiyVaMak3Q9eoFYDsF9fMsVyipqV27H4vzb\\nIoHF1xEDFxCydSOeJ7WC2uCCEpGF7HJkqXa3X/BRdOMDCxGymCtDA5MGTcDxVM0I\\nnLBk9W4=\\n-----END CERTIFICATE-----","description":"Test Definition","check":"err=Number;","freshness":1,"dataFormat":[{"name":"String","type":"string","description":"Funny stuff"},{"name":"Boolean","type":"boolean"},{"name":"Number","type":"number","unit":"V"}]}\nXsP0iKDG1bVIDarsJoQdSlRRZBpNHt/S3yPZi0o86TyfbIX7oYV3cgmTdjBIWqZuKrXQEw6aehhjlIQZgvAULIHPPOGHtdWED1BgTckibTD5VlAaOUCKx+ruip7/kuOymyyh1UzaZvt0BrXpkTTGf81XmmqtJ8BLx/KlMosy+Gh3WgDXk5kdIltE92Jt9P0KnUsBnD1wqTZyPgx9mhi0XNO6aiKC/JpdknvsA/bhTRmQMU6PXmvdHtAQrwt5zMSHKgclAfkiTeOHfHvVfbLgOn2LsJh9FSKFAlR6AFAu+Ezd10Fi1/9XjjE7c5pzM+Xq6gty+1xj/N9WZJtO7vFzxw=='
-			); } );
+		es._onsub[ 'definition/' + data.max.name ] = function( handler ) {
+			setImmediate( () => handler(
+				'definition/' + data.max.name,
+				data.max.definition.payload
+			) );
 			return Promise.resolve();
 		};
-		let payload = '1452029627\ntest\n1\n123\nRf/2W8SMf/xMyUKkukkST6ueXvaOlxILGBqIK4rv67R1GMrvbQPeCGDPl//iVYRqnbkgmmR86eLsNSwdnnJvxTMv2RP1j0nq4j7ezCzNc4tEch8XusY+KBOcXh4irp7BYQZzNcvMhNHKN9AmE1VrUvofDQfGl/AGshEGSJCMRN7yph9Uw6nyTCMrZghbG4hUR9Da1BD3pP6NALf8ybJNHc+VK8A2lO+cMG0lFZp3XBRknJ47dVSdvjC6JjH9acmAl8e8c2SAFyVVG0tFlNrOh5nX362Zeam5LF+I0irMCNlXzmYU1F07M2Eb/R4D5vjZSF/G+0jYJb6RKzIayY1wWQ==';
-		es._onsub[ 'hormone/test' ] = function( handler ) {
-			setImmediate( () => { handler( 'hormone/test', payload ); } );
-			hormoneHandler = handler
+		es._onsub[ 'hormone/' + data.max.name ] = function( handler ) {
+			setImmediate( () => handler(
+				'hormone/' + data.max.name,
+				data.max.hormone[0].payload
+			) );
+			hormoneHandler = handler;
 			return Promise.resolve();
 		};
 
-		let s = new Sink( es, 'test' );
+		// Set time
+		time.set( data.max.hormone[0].timestamp + 1000 );
+
+		let s = new Sink( es, data.max.name );
 
 		s.on( 'receiveError', done );
 		s.on( 'error', done );
 
 		s.once( 'hormone', ( name, hormone ) => {
-			// Emit the hormone a second time
-			hormoneHandler( 'hormone/test', payload );
 			s.once( 'hormone', () => done( new Error("Nope") ) );
+			// Emit the hormone a second time
+			hormoneHandler( 'hormone/' + data.max.name, data.max.hormone[0].payload );
 			setTimeout( done, 200 );
 		} );
 
 	} );
 
-	it( "should receive a hormone and emit the hormoneError event", ( done ) => {
+	it( "should not ignore new hormones", ( done ) => {
 
-		let s = new Sink( es, 'test' );
+		let hormoneHandler;
+
+		// Set subscription handler
+		es._onsub[ 'definition/' + data.max.name ] = function( handler ) {
+			setImmediate( () => handler(
+				'definition/' + data.max.name,
+				data.max.definition.payload
+			) );
+			return Promise.resolve();
+		};
+		es._onsub[ 'hormone/' + data.max.name ] = function( handler ) {
+			setImmediate( () => handler(
+				'hormone/' + data.max.name,
+				data.max.hormone[0].payload
+			) );
+			hormoneHandler = handler;
+			return Promise.resolve();
+		};
+
+		// Set time
+		time.set( data.max.hormone[0].timestamp + 1000 );
+
+		let s = new Sink( es, data.max.name );
+
+		s.on( 'receiveError', done );
+		s.on( 'error', done );
+
+		s.once( 'hormone', ( name, hormone ) => {
+			s.once( 'hormone', (name, hormone) => {
+				try {
+					assert.strictEqual( name, data.max.name );
+					assert.deepStrictEqual( hormone.data, data.max.hormone[1].data );
+					done();
+				} catch( e ) {
+					done( e );
+				}
+			} );
+			// Emit the hormone a second time
+			hormoneHandler( 'hormone/' + data.max.name, data.max.hormone[1].payload );
+		} );
+
+	} );
+
+	it( "should receive a erroneous hormone and emit the hormoneError event", ( done ) => {
+
+		// Set subscription handler
+		es._onsub[ 'definition/' + data.max.name ] = function( handler ) {
+			setImmediate( () => handler(
+				'definition/' + data.max.name,
+				data.max.definition.payload
+			) );
+			return Promise.resolve();
+		};
+		es._onsub[ 'hormone/' + data.max.name ] = function( handler ) {
+			setImmediate( () => handler(
+				'hormone/' + data.max.name,
+				data.max.hormoneErr[0].payload
+			) );
+			return Promise.resolve();
+		};
+
+		// Set time
+		time.set( data.max.hormoneErr[0].timestamp + 1000 );
+
+		let s = new Sink( es, data.max.name );
 
 		s.on( 'receiveError', done );
 		s.on( 'error', done );
 
 		s.on( 'hormoneError', ( name, hormone ) => {
 			try {
-				assert.equal( name, 'test' );
-				assert.equal( hormone.error, 123 );
-				assert.deepEqual( hormone.data, {
-					'String':  "test",
-					'Number':  123,
-					'Boolean': true
-				} );
+				assert.strictEqual( name, data.max.name );
+				assert.strictEqual( hormone.error, data.max.hormoneErr[0].data.Number );
+				assert.deepStrictEqual( hormone.data, data.max.hormoneErr[0].data );
+				assert.strictEqual( s.hormones.length, 1 );
+				assert.strictEqual( s.expiredHormones.length, 0 );
+				assert.strictEqual( s.errorHormones.length, 1 );
+				assert.strictEqual( s.goodHormones.length, 0 );
+				done();
 			} catch( e ) {
 				done( e );
 			}
-			done();
 		} );
 
 	} );
 
 	it( "should receive a fresh hormone and emit the hormoneExpired event later", ( done ) => {
 
-		time.set( 1452029627 );
+		// Set subscription handler
+		es._onsub[ 'definition/' + data.max.name ] = function( handler ) {
+			setImmediate( () => handler(
+				'definition/' + data.max.name,
+				data.max.definition.payload
+			) );
+			return Promise.resolve();
+		};
+		es._onsub[ 'hormone/' + data.max.name ] = function( handler ) {
+			setImmediate( () => handler(
+				'hormone/' + data.max.name,
+				data.max.hormone[0].payload
+			) );
+			return Promise.resolve();
+		};
 
-		let s = new Sink( es, 'test' );
+		// Set time 100ms before expiration
+		time.set( data.max.hormone[0].timestamp + 900 );
+
+		let s = new Sink( es, data.max.name );
 
 		s.on( 'receiveError', done );
 		s.on( 'error', done );
 
 		s.on( 'hormone', ( name, hormone ) => {
 			try {
-				assert.equal( name, 'test' );
+				assert.equal( name, data.max.name );
 				assert.equal( s.hormones.length, 1 );
 				assert.equal( s.expiredHormones.length, 0 );
-				assert.equal( s.errorHormones.length, 1 );
-				assert.equal( s.goodHormones.length, 0 );
+				assert.equal( s.errorHormones.length, 0 );
+				assert.equal( s.goodHormones.length, 1 );
 			} catch( e ) {
 				done( e );
 			}
@@ -406,51 +503,15 @@ describe( "Class Sink", () => {
 
 		s.on( 'hormoneExpired', ( name, hormone ) => {
 			try {
-				assert.equal( name, 'test' );
+				assert.equal( name, data.max.name );
 				assert.equal( s.hormones.length, 1 );
 				assert.equal( s.expiredHormones.length, 1 );
-				assert.equal( s.errorHormones.length, 1 );
+				assert.equal( s.errorHormones.length, 0 );
 				assert.equal( s.goodHormones.length, 0 );
+				done();
 			} catch( e ) {
 				done( e );
 			}
-			done();
-		} );
-
-	} );
-
-	it( "should receive a fresh hormone and emit the hormoneExpired event later", ( done ) => {
-
-		time.set( 1452029627 );
-
-		let s = new Sink( es, 'test' );
-
-		s.on( 'receiveError', done );
-		s.on( 'error', done );
-
-		s.on( 'hormone', ( name, hormone ) => {
-			try {
-				assert.equal( name, 'test' );
-				assert.equal( s.hormones.length, 1 );
-				assert.equal( s.expiredHormones.length, 0 );
-				assert.equal( s.errorHormones.length, 1 );
-				assert.equal( s.goodHormones.length, 0 );
-			} catch( e ) {
-				done( e );
-			}
-		} );
-
-		s.on( 'hormoneExpired', ( name, hormone ) => {
-			try {
-				assert.equal( name, 'test' );
-				assert.equal( s.hormones.length, 1 );
-				assert.equal( s.expiredHormones.length, 1 );
-				assert.equal( s.errorHormones.length, 1 );
-				assert.equal( s.goodHormones.length, 0 );
-			} catch( e ) {
-				done( e );
-			}
-			done();
 		} );
 
 	} );
@@ -460,25 +521,33 @@ describe( "Class Sink", () => {
 		let defHandler;
 
 		// Set subscription handler
-		es._onsub[ 'definition/test' ] = function( handler ) {
-			setImmediate( () => { handler(
-				'definition/test',
-				'{"cert":"-----BEGIN CERTIFICATE-----\\nMIIC0TCCAjoCAQEwDQYJKoZIhvcNAQEFBQAwdzELMAkGA1UEBhMCREUxDDAKBgNV\\nBAgMA05EUzERMA8GA1UEBwwISGFubm92ZXIxITAfBgNVBAoMGEludGVybmV0IFdp\\nZGdpdHMgUHR5IEx0ZDEkMCIGA1UEAwwbSW50ZXJuZXQgV2lkZ2l0cyBQdHkgTHRk\\nIENBMB4XDTE1MDExODE3NDU1NFoXDTE4MDExNzE3NDU1NFowZzELMAkGA1UEBhMC\\nREUxDDAKBgNVBAgMA05EUzERMA8GA1UEBwwISGFubm92ZXIxITAfBgNVBAoMGElu\\ndGVybmV0IFdpZGdpdHMgUHR5IEx0ZDEUMBIGA1UEAwwLVGVzdCBDbGllbnQwggEi\\nMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQC99vbZtOQwJPLv4po5DUpT3ZSm\\nnFlejCttofbITXCFujNqJQRX9/glpG3upsyv2ghpo24uzBgAdiOUiWNZLs/BIzkq\\nhe8mJNpnIAIQrwA1Hu/cb/mi/533gPD1rV4QOeJRkDxEY/KaZkFQvoRyUpYY64Kl\\n/pJvRqfHCzWnFpZKjsO9jc6V4soNNXlqd0sx/qvk/o3NHpDPRuKwQq7fI7Ur1srw\\n1K2DIvlasJPFf/cYrmZEhijyPrTq/RHsYcKJzHDj/WvWhW3vtG/7d7nVuRn58f/H\\n7wA2bj64UyA7xnSAta5KGEIW2bgrcYG3ajjTVL3rZzj971bKfPJeUQC+tNl/AgMB\\nAAEwDQYJKoZIhvcNAQEFBQADgYEAmjOmAyYbyZN75E7a5kjR7SP5ZQ+NUPiREZNa\\n3aH28pIDvxncv4UZBqeSFjRuyQ7BBBiyVaMak3Q9eoFYDsF9fMsVyipqV27H4vzb\\nIoHF1xEDFxCydSOeJ7WC2uCCEpGF7HJkqXa3X/BRdOMDCxGymCtDA5MGTcDxVM0I\\nnLBk9W4=\\n-----END CERTIFICATE-----","description":"Test Definition","check":"err=Number;","freshness":1,"dataFormat":[{"name":"String","type":"string","description":"Funny stuff"},{"name":"Boolean","type":"boolean"},{"name":"Number","type":"number","unit":"V"}]}\nXsP0iKDG1bVIDarsJoQdSlRRZBpNHt/S3yPZi0o86TyfbIX7oYV3cgmTdjBIWqZuKrXQEw6aehhjlIQZgvAULIHPPOGHtdWED1BgTckibTD5VlAaOUCKx+ruip7/kuOymyyh1UzaZvt0BrXpkTTGf81XmmqtJ8BLx/KlMosy+Gh3WgDXk5kdIltE92Jt9P0KnUsBnD1wqTZyPgx9mhi0XNO6aiKC/JpdknvsA/bhTRmQMU6PXmvdHtAQrwt5zMSHKgclAfkiTeOHfHvVfbLgOn2LsJh9FSKFAlR6AFAu+Ezd10Fi1/9XjjE7c5pzM+Xq6gty+1xj/N9WZJtO7vFzxw=='
-			); } );
+		es._onsub[ 'definition/' + data.max.name ] = function( handler ) {
+			setImmediate( () => handler(
+				'definition/' + data.max.name,
+				data.max.definition.payload
+			) );
 			defHandler = handler;
 			return Promise.resolve();
 		};
+		es._onsub[ 'hormone/' + data.max.name ] = function( handler ) {
+			setImmediate( () => handler(
+				'hormone/' + data.max.name,
+				data.max.hormone[0].payload
+			) );
+			return Promise.resolve();
+		};
 
-		time.set( 1452029627 );
+		// Set time 100ms before expiration
+		time.set( data.max.hormone[0].timestamp + 900 );
 
-		let s = new Sink( es, 'test' );
+		let s = new Sink( es, data.max.name );
 
 		s.on( 'receiveError', done );
 		s.on( 'error', done );
 
 		s.on( 'hormone', ( name, hormone ) => {
-			defHandler( 'definition/test', '' );
-			setTimeout( done, 1200 );
+			defHandler( 'definition/' + data.max.name, '' );
+			setTimeout( done, 400 );
 		} );
 
 		s.on( 'hormoneExpired', ( name, hormone ) => {

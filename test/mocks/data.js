@@ -25,7 +25,8 @@ module.exports = {
 				freshness: 1,
 				unkownOption: true
 			},
-			dataFormat: {}
+			dataFormat: {},
+			validity: { start: 1421603154000, end: 1516211154000 }
 		},
 		hormone: [ {
 			timestamp: 1452974164020,
@@ -89,7 +90,8 @@ module.exports = {
 					unit: "V",
 					description: null
 				}
-			}
+			},
+			validity: { start: 1421603154000, end: 1516211154000 }
 		},
 		hormone: [ {
 			timestamp: 1452974164020,
@@ -105,6 +107,14 @@ module.exports = {
 				'Number': 0,
 				'Boolean': true,
 				'Unkown': 1
+			}
+		}, {
+			timestamp: 1452974165020,
+			payload: '1452974165020\ntest\n0\n0\nCPZXeokv7Vh3FRDNfR1jLa7E4M3ZXwcwMniufWyHV+q5cjyCVCHjwhqoFU1OU3gpEv7SUeXueuCRG/d5BCLBb1Xe/fPpBdhnXURyM0kPfaoKuXLE1nrze+FlXlslxZWf/ALMjNXm5pOjR+lgl0x2bXqFFf8kVQ+xUD0RdAp1kKxCbqcKkeCI6joY7BuRQo/Qetf2kAeYL3Jg6h0CusfmlBqrdkp+0SpfXLeb/f/07FzDQRO00xYC89DbtXW7eNJQnkws3NS/KhTZQCHbrcAPtDWwsLqHJ1ekMKCwR15dQHenunA9jPTcY0jIxW01AXStFVbulEi0qsiAZDI/RoMjYQ==',
+			data: {
+				'String': "test",
+				'Number': 0,
+				'Boolean': false
 			}
 		} ],
 		hormoneErr: [ {
