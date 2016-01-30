@@ -304,7 +304,7 @@ describe( "Class Sink", () => {
 		};
 
 		// Set time
-		time.set( data.max.hormone[0].timestamp + 1000 );
+		time.set( data.max.hormone[0].timestamp + 100 );
 
 		let s = new Sink( es, data.max.name );
 
@@ -322,8 +322,8 @@ describe( "Class Sink", () => {
 				assert.deepStrictEqual( s.hormones[0], {
 					name: data.max.name,
 					sentAt: data.max.hormone[0].timestamp,
-					receivedAt: data.max.hormone[0].timestamp + 1000,
-					stateChangedAt: data.max.hormone[0].timestamp + 1000,
+					receivedAt: data.max.hormone[0].timestamp + 100,
+					stateChangedAt: data.max.hormone[0].timestamp + 100,
 					err: 0,
 					isFresh: true,
 					data: data.max.hormone[0].data,
@@ -359,7 +359,7 @@ describe( "Class Sink", () => {
 		};
 
 		// Set time
-		time.set( data.max.hormone[0].timestamp + 1000 );
+		time.set( data.max.hormone[0].timestamp + 100 );
 
 		let s = new Sink( es, data.max.name );
 
@@ -397,7 +397,7 @@ describe( "Class Sink", () => {
 		};
 
 		// Set time
-		time.set( data.max.hormone[0].timestamp + 1000 );
+		time.set( data.max.hormone[0].timestamp );
 
 		let s = new Sink( es, data.max.name );
 
@@ -439,7 +439,7 @@ describe( "Class Sink", () => {
 		};
 
 		// Set time
-		time.set( data.max.hormoneErr[0].timestamp + 1000 );
+		time.set( data.max.hormoneErr[0].timestamp );
 
 		let s = new Sink( es, data.max.name );
 

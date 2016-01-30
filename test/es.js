@@ -91,7 +91,7 @@ describe( "Class EndocrineSystem", function() {
 
 	it( "should reject connecting to the broker due to too large time drift", ( done ) => {
 
-		time.setDrift( 11 );
+		time.setDrift( 11000 );
 
 		let es = new EndocrineSystem( {
 			broker: 'mqtts://127.0.0.1:8888',
@@ -107,7 +107,7 @@ describe( "Class EndocrineSystem", function() {
 
 	it( "should connect to the broker even with a large time drift, if the es shall ignore it", ( done ) => {
 
-		time.setDrift( 11 );
+		time.setDrift( 11000 );
 
 		let es = new EndocrineSystem( {
 			broker: 'mqtts://127.0.0.1:8888',
