@@ -1,7 +1,7 @@
 "use strict";
 
-let assert = require( 'assert' );
-let mockery = require( 'mockery' );
+const assert = require( 'assert' );
+const mockery = require( 'mockery' );
 
 
 describe( "Class HormoneSource", () => {

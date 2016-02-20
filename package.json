@@ -1,7 +1,11 @@
 {
   "name": "es-edge",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Endocrine System Edge",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jue89/endocrine-system-edge.git"
+  },
   "main": "index.js",
   "directories": {
     "test": "test"
@@ -14,6 +18,7 @@
   "license": "MIT",
   "dependencies": {
     "json-gate": "^0.8.22",
+    "mdns": "^2.3.0",
     "mqtt": "^1.6.3",
     "ntp-client": "^0.5.3",
     "pem": "^1.8.1"
