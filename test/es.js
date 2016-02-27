@@ -43,7 +43,7 @@ describe( "Class EndocrineSystem", function() {
 				credentials: {
 					keyPath: tmpdir + '/es-edge-key.pem',
 					certPath: tmpdir + '/es-edge-cert.pem',
-					caPath: [ tmpdir + '/es-edge-ca.pem' ],
+					caPaths: [ tmpdir + '/es-edge-ca.pem' ],
 					requestCert: true,
 					rejectUnauthorized: false
 				}
@@ -61,10 +61,10 @@ describe( "Class EndocrineSystem", function() {
 
 	} );
 
-	it( "should reject connecting to the broker due to non-matching key and certificate", ( done ) => {
+	it( "should reject connecting to the core due to non-matching key and certificate", ( done ) => {
 
 		let es = new EndocrineSystem( {
-			broker: 'mqtts://127.0.0.1:8888',
+			core: 'mqtts://127.0.0.1:8888',
 			cert: pki.otherCert,
 			key: pki.key,
 			ca: pki.ca,
@@ -75,10 +75,10 @@ describe( "Class EndocrineSystem", function() {
 
 	} );
 
-	it( "should reject connecting to the broker due to non-matching certificate and CA", ( done ) => {
+	it( "should reject connecting to the core due to non-matching certificate and CA", ( done ) => {
 
 		let es = new EndocrineSystem( {
-			broker: 'mqtts://127.0.0.1:8888',
+			core: 'mqtts://127.0.0.1:8888',
 			cert: pki.otherCert,
 			key: pki.otherKey,
 			ca: pki.ca,
@@ -89,12 +89,12 @@ describe( "Class EndocrineSystem", function() {
 
 	} );
 
-	it( "should reject connecting to the broker due to too large time drift", ( done ) => {
+	it( "should reject connecting to the core due to too large time drift", ( done ) => {
 
 		time.setDrift( 11000 );
 
 		let es = new EndocrineSystem( {
-			broker: 'mqtts://127.0.0.1:8888',
+			core: 'mqtts://127.0.0.1:8888',
 			cert: pki.cert,
 			key: pki.key,
 			ca: pki.ca,
@@ -105,12 +105,12 @@ describe( "Class EndocrineSystem", function() {
 
 	} );
 
-	it( "should connect to the broker even with a large time drift, if the es shall ignore it", ( done ) => {
+	it( "should connect to the core even with a large time drift, if the es shall ignore it", ( done ) => {
 
 		time.setDrift( 11000 );
 
 		let es = new EndocrineSystem( {
-			broker: 'mqtts://127.0.0.1:8888',
+			core: 'mqtts://127.0.0.1:8888',
 			cert: pki.cert,
 			key: pki.key,
 			ca: pki.ca,
@@ -122,12 +122,12 @@ describe( "Class EndocrineSystem", function() {
 
 	} );
 
-	it( "should fail to connect to the broker if it is not existent", ( done ) => {
+	it( "should fail to connect to the core if it is not existent", ( done ) => {
 
 		time.setDrift( 0 );
 
 		let es = new EndocrineSystem( {
-			broker: 'mqtts://127.0.0.1:8887',
+			core: 'mqtts://127.0.0.1:8887',
 			cert: pki.cert,
 			key: pki.key,
 			ca: pki.ca,
@@ -140,10 +140,59 @@ describe( "Class EndocrineSystem", function() {
 
 	} );
 
-	it( "should connect to the broker, emit the online event, get the online state, create a gland / receptor and then disconnect", ( done ) => {
+	it( "should reject core in unkown format", ( done ) => {
+		try {
+
+			let es = new EndocrineSystem( {
+				core: true,
+				cert: pki.cert,
+				key: pki.key,
+				ca: pki.ca,
+				rejectUnauthorized: false
+			} );
+
+		} catch( e ) { /*console.log( e );*/ done(); }
+	} );
+
+	it( "should use discovery functions for obtaining core address", ( done ) => {
+
+		// Function will resolve at the 2nd call
+		let a_cnt = 0;
+		function a() {
+			if( ++a_cnt == 2 ) return Promise.resolve( 'mqtts://127.0.0.1:8888' );
+			return Promise.reject();
+		}
+
+		let fp;
+		function b( _fp ) {
+			fp = _fp;
+			return Promise.reject();
+		}
 
 		let es = new EndocrineSystem( {
-			broker: 'mqtts://127.0.0.1:8888',
+			core: [ a, b ],
+			cert: pki.cert,
+			key: pki.key,
+			ca: pki.ca,
+			rejectUnauthorized: false
+		} );
+
+		es.on( 'online', () => {
+			try {
+				assert.strictEqual( a_cnt, 2 );
+				assert.strictEqual( fp, 'cd:f8:9b:cc:05:8a:c4:f3:a0:67:4c:6f:d6:84:84:87:d2:d9:2e:e9:34:54:b8:b3:da:de:96:52:1c:18:b3:ca' );
+				es.destroy();
+			} catch( e ) { done( e ); }
+		} );
+
+		es.on( 'offline', () => done() );
+
+	} );
+
+	it( "should connect to the core, emit the online event, get the online state, create a gland / receptor and then disconnect", ( done ) => {
+
+		let es = new EndocrineSystem( {
+			core: 'mqtts://127.0.0.1:8888',
 			cert: pki.cert,
 			key: pki.key,
 			ca: pki.ca,
@@ -168,10 +217,10 @@ describe( "Class EndocrineSystem", function() {
 
 	} );
 
-	it( "should connect to the broker and emit the offline event, if the connection is lost and then reconnect to the broker", ( done ) => {
+	it( "should connect to the core and emit the offline event, if the connection is lost and then reconnect to the core", ( done ) => {
 
 		let es = new EndocrineSystem( {
-			broker: 'mqtts://127.0.0.1:8888',
+			core: 'mqtts://127.0.0.1:8888',
 			cert: pki.cert,
 			key: pki.key,
 			ca: pki.ca,
@@ -213,7 +262,7 @@ describe( "Class EndocrineSystem", function() {
 	it( "should subscribe to a topic and publish / receive a message", ( done ) => {
 
 		let es = new EndocrineSystem( {
-			broker: 'mqtts://127.0.0.1:8888',
+			core: 'mqtts://127.0.0.1:8888',
 			cert: pki.cert,
 			key: pki.key,
 			ca: pki.ca,
