@@ -92,7 +92,7 @@ es.newReceptor( '+/load' )
     let host = name.substr( 0, name.indexOf( '/' ) );
     console.log( 'High load at host', name, hormone.data );
   } )
-  .on( 'hormoneRecover', ( name, hormone ) => {
+  .on( 'hormoneRecovery', ( name, hormone ) => {
     // The first part of the hormone name is the host name
     let host = name.substr( 0, name.indexOf( '/' ) );
     console.log( 'Load okay at host', name, hormone.data );
@@ -341,10 +341,10 @@ receptor.on( 'hormoneError', ( name, hormone ) => { ... } );
 This event is emitted if a hormone changed its error value evaluated by the check script and the error is larger than 0.
 
 
-#### Event: hormoneRecover
+#### Event: hormoneRecovery
 
 ``` javascript
-receptor.on( 'hormoneRecover', ( name, hormone ) => { ... } );
+receptor.on( 'hormoneRecovery', ( name, hormone ) => { ... } );
 ```
 
 This event is emitted if a hormone changed its error value evaluated by the check script and the error is less or equal 0.
