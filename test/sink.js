@@ -317,7 +317,7 @@ describe( "Class Sink", () => {
 				assert.deepStrictEqual( hormone.data, data.max.hormone[0].data );
 				assert.strictEqual( s.hormones.length, 1 );
 				assert.strictEqual( s.expiredHormones.length, 0 );
-				assert.strictEqual( s.errorHormones.length, 0 );
+				assert.strictEqual( s.erroneousHormones.length, 0 );
 				assert.strictEqual( s.goodHormones.length, 1 );
 				assert.deepStrictEqual( s.hormones[0], {
 					name: data.max.name,
@@ -453,7 +453,7 @@ describe( "Class Sink", () => {
 				assert.deepStrictEqual( hormone.data, data.max.hormoneErr[0].data );
 				assert.strictEqual( s.hormones.length, 1 );
 				assert.strictEqual( s.expiredHormones.length, 0 );
-				assert.strictEqual( s.errorHormones.length, 1 );
+				assert.strictEqual( s.erroneousHormones.length, 1 );
 				assert.strictEqual( s.goodHormones.length, 0 );
 				done();
 			} catch( e ) {
@@ -494,7 +494,7 @@ describe( "Class Sink", () => {
 				assert.equal( name, data.max.name );
 				assert.equal( s.hormones.length, 1 );
 				assert.equal( s.expiredHormones.length, 0 );
-				assert.equal( s.errorHormones.length, 0 );
+				assert.equal( s.erroneousHormones.length, 0 );
 				assert.equal( s.goodHormones.length, 1 );
 			} catch( e ) {
 				done( e );
@@ -506,7 +506,7 @@ describe( "Class Sink", () => {
 				assert.equal( name, data.max.name );
 				assert.equal( s.hormones.length, 1 );
 				assert.equal( s.expiredHormones.length, 1 );
-				assert.equal( s.errorHormones.length, 0 );
+				assert.equal( s.erroneousHormones.length, 0 );
 				assert.equal( s.goodHormones.length, 0 );
 				done();
 			} catch( e ) {

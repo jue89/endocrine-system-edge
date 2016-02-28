@@ -386,10 +386,10 @@ let expiredHormones = receptor.expiredHormones;
 An array of the latest received hormones that expired.
 
 
-#### Property: errorHormones
+#### Property: erroneousHormones
 
 ``` javascript
-let errorHormones = receptor.errorHormones;
+let erroneousHormones = receptor.erroneousHormones;
 ```
 
 An array of the latest received hormones whose error value is larger than 0.
