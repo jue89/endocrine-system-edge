@@ -102,7 +102,7 @@ es.newReceptor( '+/load' )
 // Listen for shutdown events and then shutdown the whole es gracefully
 process.once( 'SIGINT', shutdown ).once( 'SIGTERM', shutdown );
 function shutdown() {
-  es.destroy().then( () => process.exit() );
+  es.shutdown().then( () => process.exit() );
 }
 
 ```
@@ -209,10 +209,10 @@ function certCheck( name, certInfo ) {
 ```
 
 
-#### Method: destroy
+#### Method: shutdown
 
 ``` javascript
-es.destroy();
+es.shutdown();
 ```
 
 Shuts down the endorcine system. All glands will be undefined, so they will disappear. A promise is returned, that will be resolved if the system has been successfully shut down.
@@ -240,13 +240,13 @@ gland.on( 'sent', ( hormone ) => { ... } );
 Is emitted if a hormone has been sent.
 
 
-#### Event: destroyed
+#### Event: shutdown
 
 ``` javascript
-gland.on( 'destroyed', () => { ... } );
+gland.on( 'shutdown', () => { ... } );
 ```
 
-Is emitted if the gland has been destroyed.
+Is emitted if the gland has been shut down.
 
 
 #### Event: error
@@ -265,10 +265,10 @@ gland.send( data );
 Emits a new hormone with given data. ```data``` is an object containing all data points by name that will be attached to the hormone.
 
 
-#### Method: destroy
+#### Method: shutdown
 
 ``` javascript
-gland.destroy();
+gland.shutdown();
 ```
 
 Removes the gland. A promise is returned, that will be resolved if the gland has been successfully undefined.
@@ -404,10 +404,10 @@ let goodHormones = receptor.goodHormones;
 An array of the latest received hormones that have not expired and whose error value is less or equal than 0.
 
 
-#### Method: destroy
+#### Method: shutdown
 
 ``` javascript
-receptor.destroy();
+receptor.shutdown();
 ```
 
 Unsubcribes from all hormone sources and removes the receptor. A promise is returned, that will be resolved if the receptor has been successfully undefined.

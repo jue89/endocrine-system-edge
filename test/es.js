@@ -181,7 +181,7 @@ describe( "Class EndocrineSystem", function() {
 			try {
 				assert.strictEqual( a_cnt, 2 );
 				assert.strictEqual( fp, 'cd:f8:9b:cc:05:8a:c4:f3:a0:67:4c:6f:d6:84:84:87:d2:d9:2e:e9:34:54:b8:b3:da:de:96:52:1c:18:b3:ca' );
-				es.destroy();
+				es.shutdown();
 			} catch( e ) { done( e ); }
 		} );
 
@@ -205,7 +205,7 @@ describe( "Class EndocrineSystem", function() {
 			} catch( e ) { done( e ); }
 			es.newGland( 'test' );
 			es.newReceptor( '#' );
-			es.destroy();
+			es.shutdown();
 		} );
 
 		es.on( 'offline', () => {

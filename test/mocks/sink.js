@@ -8,7 +8,7 @@ class SinkMock extends events.EventEmitter {
 		super();
 	}
 
-	destroy() {
+	shutdown() {
 		return Promise.resolve();
 	}
 
