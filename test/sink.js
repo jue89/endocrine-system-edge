@@ -90,7 +90,7 @@ describe( "Class Sink", () => {
 
 		let s = new Sink( es, data.min.name );
 
-		s.on( 'receiveError', ( e ) => {
+		s.on( 'receptionError', ( e ) => {
 			/*console.log(e);*/
 			done();
 		} );
@@ -113,7 +113,7 @@ describe( "Class Sink", () => {
 
 		let s = new Sink( es, data.min.name );
 
-		s.on( 'receiveError', ( e ) => {
+		s.on( 'receptionError', ( e ) => {
 			/*console.log(e);*/
 			done();
 		} );
@@ -147,7 +147,7 @@ describe( "Class Sink", () => {
 
 		} );
 
-		s.on( 'receiveError', ( err ) => {
+		s.on( 'receptionError', ( err ) => {
 
 			try {
 				assert.strictEqual( err.message, "Nope" );
@@ -176,7 +176,7 @@ describe( "Class Sink", () => {
 
 		let s = new Sink( es, data.min.name );
 
-		s.on( 'subscribe', ( name, definition ) => {
+		s.on( 'defined', ( name, definition ) => {
 			try {
 				assert.strictEqual( name, data.min.name );
 				assert.deepStrictEqual( definition.data, data.min.definition.data );
@@ -188,7 +188,7 @@ describe( "Class Sink", () => {
 			}
 		} );
 
-		s.on( 'unsubscribe', ( name ) => {
+		s.on( 'undefined', ( name ) => {
 			try {
 				assert.strictEqual( name, data.min.name );
 				done();
@@ -215,7 +215,7 @@ describe( "Class Sink", () => {
 
 		let s = new Sink( es, data.min.name );
 
-		s.on( 'subscribe', ( name, definition ) => {
+		s.on( 'defined', ( name, definition ) => {
 			try {
 				assert.strictEqual( name, data.min.name );
 				assert.deepStrictEqual( definition.data, data.min.definition.data );
@@ -228,11 +228,11 @@ describe( "Class Sink", () => {
 
 		} );
 
-		s.on( 'unsubscribe', ( name ) => {
+		s.on( 'undefined', ( name ) => {
 			done( new Error("Nope!") );
 		} );
 
-		s.on( 'refresh', ( name, definition ) => {
+		s.on( 'refreshed', ( name, definition ) => {
 			try {
 				assert.strictEqual( name, data.min.name );
 				assert.deepStrictEqual( definition.data, data.min.definition.data );
@@ -261,7 +261,7 @@ describe( "Class Sink", () => {
 
 		let s = new Sink( es, data.min.name );
 
-		s.once( 'subscribe', ( name, definition ) => {
+		s.once( 'defined', ( name, definition ) => {
 			try {
 				assert.strictEqual( name, data.min.name );
 				assert.deepStrictEqual( definition.data, data.min.definition.data );
@@ -275,8 +275,8 @@ describe( "Class Sink", () => {
 
 			// Try to observe unsubscribe and subscribe again
 			let unsub = false;
-			s.once( 'unsubscribe', () => { unsub = true; } );
-			s.once( 'subscribe', () => {
+			s.once( 'undefined', () => { unsub = true; } );
+			s.once( 'defined', () => {
 				if( ! unsub ) done( new Error( "Nope" ) );
 				else done();
 			} );
@@ -308,7 +308,7 @@ describe( "Class Sink", () => {
 
 		let s = new Sink( es, data.max.name );
 
-		s.on( 'receiveError', done );
+		s.on( 'receptionError', done );
 		s.on( 'error', done );
 
 		s.on( 'hormone', ( name, hormone ) => {
@@ -317,7 +317,7 @@ describe( "Class Sink", () => {
 				assert.deepStrictEqual( hormone.data, data.max.hormone[0].data );
 				assert.strictEqual( s.hormones.length, 1 );
 				assert.strictEqual( s.expiredHormones.length, 0 );
-				assert.strictEqual( s.errorHormones.length, 0 );
+				assert.strictEqual( s.erroneousHormones.length, 0 );
 				assert.strictEqual( s.goodHormones.length, 1 );
 				assert.deepStrictEqual( s.hormones[0], {
 					name: data.max.name,
@@ -363,7 +363,7 @@ describe( "Class Sink", () => {
 
 		let s = new Sink( es, data.max.name );
 
-		s.on( 'receiveError', done );
+		s.on( 'receptionError', done );
 		s.on( 'error', done );
 
 		s.once( 'hormone', ( name, hormone ) => {
@@ -401,7 +401,7 @@ describe( "Class Sink", () => {
 
 		let s = new Sink( es, data.max.name );
 
-		s.on( 'receiveError', done );
+		s.on( 'receptionError', done );
 		s.on( 'error', done );
 
 		s.once( 'hormone', ( name, hormone ) => {
@@ -443,7 +443,7 @@ describe( "Class Sink", () => {
 
 		let s = new Sink( es, data.max.name );
 
-		s.on( 'receiveError', done );
+		s.on( 'receptionError', done );
 		s.on( 'error', done );
 
 		s.on( 'hormoneError', ( name, hormone ) => {
@@ -453,7 +453,7 @@ describe( "Class Sink", () => {
 				assert.deepStrictEqual( hormone.data, data.max.hormoneErr[0].data );
 				assert.strictEqual( s.hormones.length, 1 );
 				assert.strictEqual( s.expiredHormones.length, 0 );
-				assert.strictEqual( s.errorHormones.length, 1 );
+				assert.strictEqual( s.erroneousHormones.length, 1 );
 				assert.strictEqual( s.goodHormones.length, 0 );
 				done();
 			} catch( e ) {
@@ -486,7 +486,7 @@ describe( "Class Sink", () => {
 
 		let s = new Sink( es, data.max.name );
 
-		s.on( 'receiveError', done );
+		s.on( 'receptionError', done );
 		s.on( 'error', done );
 
 		s.on( 'hormone', ( name, hormone ) => {
@@ -494,7 +494,7 @@ describe( "Class Sink", () => {
 				assert.equal( name, data.max.name );
 				assert.equal( s.hormones.length, 1 );
 				assert.equal( s.expiredHormones.length, 0 );
-				assert.equal( s.errorHormones.length, 0 );
+				assert.equal( s.erroneousHormones.length, 0 );
 				assert.equal( s.goodHormones.length, 1 );
 			} catch( e ) {
 				done( e );
@@ -506,7 +506,7 @@ describe( "Class Sink", () => {
 				assert.equal( name, data.max.name );
 				assert.equal( s.hormones.length, 1 );
 				assert.equal( s.expiredHormones.length, 1 );
-				assert.equal( s.errorHormones.length, 0 );
+				assert.equal( s.erroneousHormones.length, 0 );
 				assert.equal( s.goodHormones.length, 0 );
 				done();
 			} catch( e ) {
@@ -542,7 +542,7 @@ describe( "Class Sink", () => {
 
 		let s = new Sink( es, data.max.name );
 
-		s.on( 'receiveError', done );
+		s.on( 'receptionError', done );
 		s.on( 'error', done );
 
 		s.on( 'hormone', ( name, hormone ) => {

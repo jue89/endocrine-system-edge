@@ -75,10 +75,10 @@ setInterval( () => {
 
 // - Heartbeats
 es.newReceptor( '+' )
-  .on( 'subscribe', ( name ) => {
+  .on( 'defined', ( name ) => {
     console.log( 'New host:', name );
   } )
-  .on( 'unsubscribe', ( name ) => {
+  .on( 'undefined', ( name ) => {
     console.log( 'Removed host:', name );
   } )
   .on( 'hormoneExpired', ( name ) => {
@@ -92,7 +92,7 @@ es.newReceptor( '+/load' )
     let host = name.substr( 0, name.indexOf( '/' ) );
     console.log( 'High load at host', name, hormone.data );
   } )
-  .on( 'hormoneRecover', ( name, hormone ) => {
+  .on( 'hormoneRecovery', ( name, hormone ) => {
     // The first part of the hormone name is the host name
     let host = name.substr( 0, name.indexOf( '/' ) );
     console.log( 'Load okay at host', name, hormone.data );
@@ -102,7 +102,7 @@ es.newReceptor( '+/load' )
 // Listen for shutdown events and then shutdown the whole es gracefully
 process.once( 'SIGINT', shutdown ).once( 'SIGTERM', shutdown );
 function shutdown() {
-  es.destroy().then( () => process.exit() );
+  es.shutdown().then( () => process.exit() );
 }
 
 ```
@@ -209,10 +209,10 @@ function certCheck( name, certInfo ) {
 ```
 
 
-#### Method: destroy
+#### Method: shutdown
 
 ``` javascript
-es.destroy();
+es.shutdown();
 ```
 
 Shuts down the endorcine system. All glands will be undefined, so they will disappear. A promise is returned, that will be resolved if the system has been successfully shut down.
@@ -240,13 +240,13 @@ gland.on( 'sent', ( hormone ) => { ... } );
 Is emitted if a hormone has been sent.
 
 
-#### Event: destroyed
+#### Event: shutdown
 
 ``` javascript
-gland.on( 'destroyed', () => { ... } );
+gland.on( 'shutdown', () => { ... } );
 ```
 
-Is emitted if the gland has been destroyed.
+Is emitted if the gland has been shut down.
 
 
 #### Event: error
@@ -265,10 +265,10 @@ gland.send( data );
 Emits a new hormone with given data. ```data``` is an object containing all data points by name that will be attached to the hormone.
 
 
-#### Method: destroy
+#### Method: shutdown
 
 ``` javascript
-gland.destroy();
+gland.shutdown();
 ```
 
 Removes the gland. A promise is returned, that will be resolved if the gland has been successfully undefined.
@@ -278,28 +278,28 @@ Removes the gland. A promise is returned, that will be resolved if the gland has
 
 The Method newReceptor will return an instance of Receptor and listens to hormone defintions.
 
-#### Event: subscribe
+#### Event: defined
 
 ``` javascript
-receptor.on( 'subscribe', ( name, definition ) => { ... } );
+receptor.on( 'defined', ( name, definition ) => { ... } );
 ```
 
 If the receptor recieved a hormone definition and it passed the cert check, the receptor will subscribe to emitted hormones and fires this event.
 
 
-#### Event: refresh
+#### Event: refreshed
 
 ``` javascript
-receptor.on( 'refresh', ( name, definition ) => { ... } );
+receptor.on( 'refreshed', ( name, definition ) => { ... } );
 ```
 
-If the receptor received a hormone defintion again and nothing changed, the receptor won't unsubscribe and subscribe again. Instead it will just emit the refresh event.
+If the receptor received a hormone defintion again and nothing changed, the receptor won't undefine and define again. Instead it will just emit the refresh event.
 
 
-#### Event: unsubscribe
+#### Event: undefined
 
 ``` javascript
-receptor.on( 'unsubscribe', ( name ) => { ... } );
+receptor.on( 'undefined', ( name ) => { ... } );
 ```
 
 If a hormone definition is removed, the receptor will unsubscribe from the hormone.
@@ -341,10 +341,10 @@ receptor.on( 'hormoneError', ( name, hormone ) => { ... } );
 This event is emitted if a hormone changed its error value evaluated by the check script and the error is larger than 0.
 
 
-#### Event: hormoneRecover
+#### Event: hormoneRecovery
 
 ``` javascript
-receptor.on( 'hormoneRecover', ( name, hormone ) => { ... } );
+receptor.on( 'hormoneRecovery', ( name, hormone ) => { ... } );
 ```
 
 This event is emitted if a hormone changed its error value evaluated by the check script and the error is less or equal 0.
@@ -359,13 +359,13 @@ receptor.on( 'error', ( error ) => { ... } );
 This will be emitted if a local error occured. We've done something wrong!
 
 
-#### Event: receiveError
+#### Event: receptionError
 
 ``` javascript
-receptor.on( 'receiveError', ( error ) => { ... } );
+receptor.on( 'receptionError', ( error ) => { ... } );
 ```
 
-This will be emitted if an error occured while processing data that we received. Someone else has done something wrong. We might want to log this, but someone else must solve this problem.
+This will be emitted if an error occured while processing data that we received. Someone else has probably done something wrong. We might want to log this, but someone else must solve this problem.
 
 
 #### Property: hormones
@@ -386,10 +386,10 @@ let expiredHormones = receptor.expiredHormones;
 An array of the latest received hormones that expired.
 
 
-#### Property: errorHormones
+#### Property: erroneousHormones
 
 ``` javascript
-let errorHormones = receptor.errorHormones;
+let erroneousHormones = receptor.erroneousHormones;
 ```
 
 An array of the latest received hormones whose error value is larger than 0.
@@ -404,10 +404,10 @@ let goodHormones = receptor.goodHormones;
 An array of the latest received hormones that have not expired and whose error value is less or equal than 0.
 
 
-#### Method: destroy
+#### Method: shutdown
 
 ``` javascript
-receptor.destroy();
+receptor.shutdown();
 ```
 
 Unsubcribes from all hormone sources and removes the receptor. A promise is returned, that will be resolved if the receptor has been successfully undefined.
