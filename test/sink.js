@@ -176,7 +176,7 @@ describe( "Class Sink", () => {
 
 		let s = new Sink( es, data.min.name );
 
-		s.on( 'subscribe', ( name, definition ) => {
+		s.on( 'defined', ( name, definition ) => {
 			try {
 				assert.strictEqual( name, data.min.name );
 				assert.deepStrictEqual( definition.data, data.min.definition.data );
@@ -188,7 +188,7 @@ describe( "Class Sink", () => {
 			}
 		} );
 
-		s.on( 'unsubscribe', ( name ) => {
+		s.on( 'undefined', ( name ) => {
 			try {
 				assert.strictEqual( name, data.min.name );
 				done();
@@ -215,7 +215,7 @@ describe( "Class Sink", () => {
 
 		let s = new Sink( es, data.min.name );
 
-		s.on( 'subscribe', ( name, definition ) => {
+		s.on( 'defined', ( name, definition ) => {
 			try {
 				assert.strictEqual( name, data.min.name );
 				assert.deepStrictEqual( definition.data, data.min.definition.data );
@@ -228,11 +228,11 @@ describe( "Class Sink", () => {
 
 		} );
 
-		s.on( 'unsubscribe', ( name ) => {
+		s.on( 'undefined', ( name ) => {
 			done( new Error("Nope!") );
 		} );
 
-		s.on( 'refresh', ( name, definition ) => {
+		s.on( 'refreshed', ( name, definition ) => {
 			try {
 				assert.strictEqual( name, data.min.name );
 				assert.deepStrictEqual( definition.data, data.min.definition.data );
@@ -261,7 +261,7 @@ describe( "Class Sink", () => {
 
 		let s = new Sink( es, data.min.name );
 
-		s.once( 'subscribe', ( name, definition ) => {
+		s.once( 'defined', ( name, definition ) => {
 			try {
 				assert.strictEqual( name, data.min.name );
 				assert.deepStrictEqual( definition.data, data.min.definition.data );
@@ -275,8 +275,8 @@ describe( "Class Sink", () => {
 
 			// Try to observe unsubscribe and subscribe again
 			let unsub = false;
-			s.once( 'unsubscribe', () => { unsub = true; } );
-			s.once( 'subscribe', () => {
+			s.once( 'undefined', () => { unsub = true; } );
+			s.once( 'defined', () => {
 				if( ! unsub ) done( new Error( "Nope" ) );
 				else done();
 			} );

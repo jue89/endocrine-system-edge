@@ -75,10 +75,10 @@ setInterval( () => {
 
 // - Heartbeats
 es.newReceptor( '+' )
-  .on( 'subscribe', ( name ) => {
+  .on( 'defined', ( name ) => {
     console.log( 'New host:', name );
   } )
-  .on( 'unsubscribe', ( name ) => {
+  .on( 'undefined', ( name ) => {
     console.log( 'Removed host:', name );
   } )
   .on( 'hormoneExpired', ( name ) => {
@@ -278,28 +278,28 @@ Removes the gland. A promise is returned, that will be resolved if the gland has
 
 The Method newReceptor will return an instance of Receptor and listens to hormone defintions.
 
-#### Event: subscribe
+#### Event: defined
 
 ``` javascript
-receptor.on( 'subscribe', ( name, definition ) => { ... } );
+receptor.on( 'defined', ( name, definition ) => { ... } );
 ```
 
 If the receptor recieved a hormone definition and it passed the cert check, the receptor will subscribe to emitted hormones and fires this event.
 
 
-#### Event: refresh
+#### Event: refreshed
 
 ``` javascript
-receptor.on( 'refresh', ( name, definition ) => { ... } );
+receptor.on( 'refreshed', ( name, definition ) => { ... } );
 ```
 
-If the receptor received a hormone defintion again and nothing changed, the receptor won't unsubscribe and subscribe again. Instead it will just emit the refresh event.
+If the receptor received a hormone defintion again and nothing changed, the receptor won't undefine and define again. Instead it will just emit the refresh event.
 
 
-#### Event: unsubscribe
+#### Event: undefined
 
 ``` javascript
-receptor.on( 'unsubscribe', ( name ) => { ... } );
+receptor.on( 'undefined', ( name ) => { ... } );
 ```
 
 If a hormone definition is removed, the receptor will unsubscribe from the hormone.
