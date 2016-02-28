@@ -1,6 +1,6 @@
 # Endocrine System: Edge
 
-Yes, you are still on GitHub. And no, this is not the *Pschyrembel*. (If you are familiar with the German language and own this medical dictionary, you really want to lookup *Steinlaus*!) This repository accomodates my approach to implement an application performance monitoring system. But it also can be used for inter-process communication across the whole network or even the Internet! In the future I will try to make my home *smart* with this system. It is written in Javascript (ES6) and offers a Node.JS (>=4.0.0) module. The whole system is based on a public key infrastructure (PKI). It will ensure that the origin of every transmitted bit of data can be verified and that no data is manipulated on its way from sourc to sink.
+Yes, you are still on GitHub. And no, this is not the *Pschyrembel*. (If you are familiar with the German language and own this medical dictionary, you really want to lookup *Steinlaus*!) This repository accomodates my approach to implement an application performance monitoring system. But it also can be used for inter-process communication across the whole network or even the Internet! In the future I will try to make my home *smart* with this system. It is written in Javascript (ES6) and offers a Node.JS (>=4.0.0) module. The whole system is based on a public key infrastructure (PKI). It will ensure that the origin of every transmitted bit of data can be verified and that no data is manipulated on its way from source to sink.
 
 The *Edge* of the Endocrine System emits and receives hormones. Hormones are datagrams that may contain information of any kind.
 
@@ -13,15 +13,17 @@ While running this example you should observe your MQTT broker and see the gener
 "use strict";
 
 const os = require( 'os' );
+const ES = require( 'es-edge' );
+const mdns = require( 'es-discovery-mdns' );
 const pki = require( './test/mocks/pki.js' );
 
 // Establishing a connection to our MQTT broker.
 // For further details check the connect method of MQTT.js out.
-let es = require( './index.js' )( {
+let es = ES( {
   key: pki.key,                         // Private key (PEM)
   cert: pki.cert,                       // Certificate (PEM)
   ca: pki.ca,                           // CA certificate (PEM)
-  broker: 'mqtts://localhost',          // MQTTS broker. If left blank, es-edge will search for a broker via mDNS!
+  core: [ mdns.discovery(60) ],         // The core will be found by mDNS. Timeout: 60s.
   prefix: os.hostname(),                // Prefix of all emitted hormones (optional)
   ignoreTimedrift: false                // Ignore timedrift. Might be handy for systems without internet connection
 } );
@@ -45,6 +47,7 @@ let loadGland = es.newGland(
   {
     description: 'Current Load',        // Human-readable description
     freshness: 60,                      // Maximum age of received hormes
+    autoRefresh: false                  // The system won't take care of emitting this hormone
     dataFormat: [                       // Define data points included in the hormone
       { name: 'load1', description: '1 Minute', type: 'number' },
       { name: 'load5', description: '5 Minutes', type: 'number' },
@@ -61,8 +64,8 @@ setInterval( () => {
   let load = os.loadavg();
   loadGland.send( {
     load1: load[0],
-    load5: load[0],
-    load15: load[0]
+    load5: load[1],
+    load15: load[2]
   } );
 
 }, 1000 );
@@ -123,7 +126,7 @@ Connects to an [Endocrine System Core](https://github.com/jue89/endocrine-system
  * ```cert```: Buffer containing the client certificate.
  * ```key```: Buffer containing the client key.
  * ```ca```: Buffer containing the certificate authority that signed the client certificate.
- * ```broker```: (optional) URL of the broker. If not given es-edge will search for one by mDNS.
+ * ```core```: Array of discovery services. The services will be used sequentially until the core has been discovered. The array takes functions, that returns a promise, or strings that will be interpreted as URL.
  * ```prefix```: (optional) Prefix for all glands.
  * ```ignoreTimedrift```: (optional) If set to true, the system won't check the accuracy of the local time.
 
@@ -181,10 +184,10 @@ Creates a new gland that emits hormones. ```name``` is a string in the schema of
  * ```freshness```: (optional) Maximum timespan in seconds between two emitted hormones until the hormone is marked as unfresh. Default: 7200.
  * ```autoRefresh```: (optional) The system will reemit the last hormone in order to keep it fresh. Default: true.
  * ```dataFormat```: (optional) An array of data points that are attached to the hormone. Each data point has the following properies:
-  * ```name```: Name of the data point.
-  * ```description```: (optional) Description of the data point.
-  * ```type```: Format of the data point. Can be: ```'string'```, ```'boolean'```, ```'number'```.
-  * ```unit```: (optional) Unit of the data point.
+   * ```name```: Name of the data point.
+   * ```description```: (optional) Description of the data point.
+   * ```type```: Format of the data point. Can be: ```'string'```, ```'boolean'```, ```'number'```.
+   * ```unit```: (optional) Unit of the data point.
  * ```check```: (optional) String with Javascript code that evaluates the hormone data. Data points are exposed with their names. The result must be stored in the variable ```err```. If ```err``` is larger than 0, the hormone is marked as erroneous.
 
 
