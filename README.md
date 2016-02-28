@@ -359,13 +359,13 @@ receptor.on( 'error', ( error ) => { ... } );
 This will be emitted if a local error occured. We've done something wrong!
 
 
-#### Event: receiveError
+#### Event: receptionError
 
 ``` javascript
-receptor.on( 'receiveError', ( error ) => { ... } );
+receptor.on( 'receptionError', ( error ) => { ... } );
 ```
 
-This will be emitted if an error occured while processing data that we received. Someone else has done something wrong. We might want to log this, but someone else must solve this problem.
+This will be emitted if an error occured while processing data that we received. Someone else has probably done something wrong. We might want to log this, but someone else must solve this problem.
 
 
 #### Property: hormones

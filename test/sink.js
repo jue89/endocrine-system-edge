@@ -90,7 +90,7 @@ describe( "Class Sink", () => {
 
 		let s = new Sink( es, data.min.name );
 
-		s.on( 'receiveError', ( e ) => {
+		s.on( 'receptionError', ( e ) => {
 			/*console.log(e);*/
 			done();
 		} );
@@ -113,7 +113,7 @@ describe( "Class Sink", () => {
 
 		let s = new Sink( es, data.min.name );
 
-		s.on( 'receiveError', ( e ) => {
+		s.on( 'receptionError', ( e ) => {
 			/*console.log(e);*/
 			done();
 		} );
@@ -147,7 +147,7 @@ describe( "Class Sink", () => {
 
 		} );
 
-		s.on( 'receiveError', ( err ) => {
+		s.on( 'receptionError', ( err ) => {
 
 			try {
 				assert.strictEqual( err.message, "Nope" );
@@ -308,7 +308,7 @@ describe( "Class Sink", () => {
 
 		let s = new Sink( es, data.max.name );
 
-		s.on( 'receiveError', done );
+		s.on( 'receptionError', done );
 		s.on( 'error', done );
 
 		s.on( 'hormone', ( name, hormone ) => {
@@ -363,7 +363,7 @@ describe( "Class Sink", () => {
 
 		let s = new Sink( es, data.max.name );
 
-		s.on( 'receiveError', done );
+		s.on( 'receptionError', done );
 		s.on( 'error', done );
 
 		s.once( 'hormone', ( name, hormone ) => {
@@ -401,7 +401,7 @@ describe( "Class Sink", () => {
 
 		let s = new Sink( es, data.max.name );
 
-		s.on( 'receiveError', done );
+		s.on( 'receptionError', done );
 		s.on( 'error', done );
 
 		s.once( 'hormone', ( name, hormone ) => {
@@ -443,7 +443,7 @@ describe( "Class Sink", () => {
 
 		let s = new Sink( es, data.max.name );
 
-		s.on( 'receiveError', done );
+		s.on( 'receptionError', done );
 		s.on( 'error', done );
 
 		s.on( 'hormoneError', ( name, hormone ) => {
@@ -486,7 +486,7 @@ describe( "Class Sink", () => {
 
 		let s = new Sink( es, data.max.name );
 
-		s.on( 'receiveError', done );
+		s.on( 'receptionError', done );
 		s.on( 'error', done );
 
 		s.on( 'hormone', ( name, hormone ) => {
@@ -542,7 +542,7 @@ describe( "Class Sink", () => {
 
 		let s = new Sink( es, data.max.name );
 
-		s.on( 'receiveError', done );
+		s.on( 'receptionError', done );
 		s.on( 'error', done );
 
 		s.on( 'hormone', ( name, hormone ) => {
