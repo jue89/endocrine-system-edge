@@ -1,6 +1,6 @@
 # Endocrine System: Edge
 
-Yes, you are still on GitHub. And no, this is not the *Pschyrembel*. (If you are familiar with the German language and own this medical dictionary, you really want to lookup *Steinlaus*!) This repository accomodates my approach to implement an application performance monitoring system. But it also can be used for inter-process communication across the whole network or even the Internet! In the future I will try to make my home *smart* with this system. It is written in Javascript (ES6) and offers a Node.JS (>=4.0.0) module. The whole system is based on a public key infrastructure (PKI). It will ensure that the origin of every transmitted bit of data can be verified and that no data is manipulated on its way from sourc to sink.
+Yes, you are still on GitHub. And no, this is not the *Pschyrembel*. (If you are familiar with the German language and own this medical dictionary, you really want to lookup *Steinlaus*!) This repository accomodates my approach to implement an application performance monitoring system. But it also can be used for inter-process communication across the whole network or even the Internet! In the future I will try to make my home *smart* with this system. It is written in Javascript (ES6) and offers a Node.JS (>=4.0.0) module. The whole system is based on a public key infrastructure (PKI). It will ensure that the origin of every transmitted bit of data can be verified and that no data is manipulated on its way from source to sink.
 
 The *Edge* of the Endocrine System emits and receives hormones. Hormones are datagrams that may contain information of any kind.
 
@@ -13,15 +13,17 @@ While running this example you should observe your MQTT broker and see the gener
 "use strict";
 
 const os = require( 'os' );
+const ES = require( 'es-edge' );
+const mdns = require( 'es-discovery-mdns' );
 const pki = require( './test/mocks/pki.js' );
 
 // Establishing a connection to our MQTT broker.
 // For further details check the connect method of MQTT.js out.
-let es = require( './index.js' )( {
+let es = ES( {
   key: pki.key,                         // Private key (PEM)
   cert: pki.cert,                       // Certificate (PEM)
   ca: pki.ca,                           // CA certificate (PEM)
-  broker: 'mqtts://localhost',          // MQTTS broker. If left blank, es-edge will search for a broker via mDNS!
+  core: [ mdns.discovery(60) ],         // The core will be found by mDNS. Timeout: 60s.
   prefix: os.hostname(),                // Prefix of all emitted hormones (optional)
   ignoreTimedrift: false                // Ignore timedrift. Might be handy for systems without internet connection
 } );
@@ -45,6 +47,7 @@ let loadGland = es.newGland(
   {
     description: 'Current Load',        // Human-readable description
     freshness: 60,                      // Maximum age of received hormes
+    autoRefresh: false                  // The system won't take care of emitting this hormone
     dataFormat: [                       // Define data points included in the hormone
       { name: 'load1', description: '1 Minute', type: 'number' },
       { name: 'load5', description: '5 Minutes', type: 'number' },
@@ -61,8 +64,8 @@ setInterval( () => {
   let load = os.loadavg();
   loadGland.send( {
     load1: load[0],
-    load5: load[0],
-    load15: load[0]
+    load5: load[1],
+    load15: load[2]
   } );
 
 }, 1000 );
@@ -72,13 +75,13 @@ setInterval( () => {
 
 // - Heartbeats
 es.newReceptor( '+' )
-  .on( 'subscribe', ( name ) => {
+  .on( 'defined', ( name ) => {
     console.log( 'New host:', name );
   } )
-  .on( 'unsubscribe', ( name ) => {
+  .on( 'undefined', ( name ) => {
     console.log( 'Removed host:', name );
   } )
-  .on( 'hormoneExpired', ( name ) => {
+  .on( 'hormoneExpiration', ( name ) => {
     console.log( 'We lost a host:', name );
   } );
 
@@ -89,7 +92,7 @@ es.newReceptor( '+/load' )
     let host = name.substr( 0, name.indexOf( '/' ) );
     console.log( 'High load at host', name, hormone.data );
   } )
-  .on( 'hormoneRecover', ( name, hormone ) => {
+  .on( 'hormoneRecovery', ( name, hormone ) => {
     // The first part of the hormone name is the host name
     let host = name.substr( 0, name.indexOf( '/' ) );
     console.log( 'Load okay at host', name, hormone.data );
@@ -99,7 +102,7 @@ es.newReceptor( '+/load' )
 // Listen for shutdown events and then shutdown the whole es gracefully
 process.once( 'SIGINT', shutdown ).once( 'SIGTERM', shutdown );
 function shutdown() {
-  es.destroy().then( () => process.exit() );
+  es.shutdown().then( () => process.exit() );
 }
 
 ```
@@ -123,9 +126,11 @@ Connects to an [Endocrine System Core](https://github.com/jue89/endocrine-system
  * ```cert```: Buffer containing the client certificate.
  * ```key```: Buffer containing the client key.
  * ```ca```: Buffer containing the certificate authority that signed the client certificate.
- * ```broker```: (optional) URL of the broker. If not given es-edge will search for one by mDNS.
+ * ```core```: Array of discovery services. The services will be used sequentially until the core has been discovered. The array takes functions, that returns a promise, or strings that will be interpreted as URL.
  * ```prefix```: (optional) Prefix for all glands.
  * ```ignoreTimedrift```: (optional) If set to true, the system won't check the accuracy of the local time.
+ * ```definitionResendInterval```: (optional) The interval in seconds between the hormone definitions are resend. Default: 21600s (6h)
+ * ```reconnectTimeout```: (optional) Amount of seconds until the core will be rediscovered after a lost connection. If you are using a static Core address without any fancy discovery things, you want to set this value to ```null```. A reconnect to the same known Core will take place anyway. Warning: Inflight hormones will be destroyed. Default: 30s
 
 
 ### Class: Endocrine System
@@ -142,10 +147,18 @@ es.on( 'error', ( error ) => { ... } );
 If an error occurs in the local Endocrine System instance or its glands or receptors, this event will be emitted.
 
 
+#### Event: connecting
+
+``` javascript
+es.on( 'connecting', ( url ) => { ... } );
+```
+
+Will be emitted if the tries to connect to stated url. The url is the result of the discovery.
+
 #### Event: online
 
 ``` javascript
-es.on( 'online', () => { ... } );
+es.on( 'online', ( url ) => { ... } );
 ```
 
 Will be emitted if the system goes online.
@@ -181,10 +194,10 @@ Creates a new gland that emits hormones. ```name``` is a string in the schema of
  * ```freshness```: (optional) Maximum timespan in seconds between two emitted hormones until the hormone is marked as unfresh. Default: 7200.
  * ```autoRefresh```: (optional) The system will reemit the last hormone in order to keep it fresh. Default: true.
  * ```dataFormat```: (optional) An array of data points that are attached to the hormone. Each data point has the following properies:
-  * ```name```: Name of the data point.
-  * ```description```: (optional) Description of the data point.
-  * ```type```: Format of the data point. Can be: ```'string'```, ```'boolean'```, ```'number'```.
-  * ```unit```: (optional) Unit of the data point.
+   * ```name```: Name of the data point.
+   * ```description```: (optional) Description of the data point.
+   * ```type```: Format of the data point. Can be: ```'string'```, ```'boolean'```, ```'number'```.
+   * ```unit```: (optional) Unit of the data point.
  * ```check```: (optional) String with Javascript code that evaluates the hormone data. Data points are exposed with their names. The result must be stored in the variable ```err```. If ```err``` is larger than 0, the hormone is marked as erroneous.
 
 
@@ -206,10 +219,10 @@ function certCheck( name, certInfo ) {
 ```
 
 
-#### Method: destroy
+#### Method: shutdown
 
 ``` javascript
-es.destroy();
+es.shutdown();
 ```
 
 Shuts down the endorcine system. All glands will be undefined, so they will disappear. A promise is returned, that will be resolved if the system has been successfully shut down.
@@ -237,13 +250,13 @@ gland.on( 'sent', ( hormone ) => { ... } );
 Is emitted if a hormone has been sent.
 
 
-#### Event: destroyed
+#### Event: shutdown
 
 ``` javascript
-gland.on( 'destroyed', () => { ... } );
+gland.on( 'shutdown', () => { ... } );
 ```
 
-Is emitted if the gland has been destroyed.
+Is emitted if the gland has been shut down.
 
 
 #### Event: error
@@ -262,10 +275,10 @@ gland.send( data );
 Emits a new hormone with given data. ```data``` is an object containing all data points by name that will be attached to the hormone.
 
 
-#### Method: destroy
+#### Method: shutdown
 
 ``` javascript
-gland.destroy();
+gland.shutdown();
 ```
 
 Removes the gland. A promise is returned, that will be resolved if the gland has been successfully undefined.
@@ -275,28 +288,28 @@ Removes the gland. A promise is returned, that will be resolved if the gland has
 
 The Method newReceptor will return an instance of Receptor and listens to hormone defintions.
 
-#### Event: subscribe
+#### Event: defined
 
 ``` javascript
-receptor.on( 'subscribe', ( name, definition ) => { ... } );
+receptor.on( 'defined', ( name, definition ) => { ... } );
 ```
 
 If the receptor recieved a hormone definition and it passed the cert check, the receptor will subscribe to emitted hormones and fires this event.
 
 
-#### Event: refresh
+#### Event: refreshed
 
 ``` javascript
-receptor.on( 'refresh', ( name, definition ) => { ... } );
+receptor.on( 'refreshed', ( name, definition ) => { ... } );
 ```
 
-If the receptor received a hormone defintion again and nothing changed, the receptor won't unsubscribe and subscribe again. Instead it will just emit the refresh event.
+If the receptor received a hormone defintion again and nothing changed, the receptor won't undefine and define again. Instead it will just emit the refresh event.
 
 
-#### Event: unsubscribe
+#### Event: undefined
 
 ``` javascript
-receptor.on( 'unsubscribe', ( name ) => { ... } );
+receptor.on( 'undefined', ( name ) => { ... } );
 ```
 
 If a hormone definition is removed, the receptor will unsubscribe from the hormone.
@@ -311,10 +324,10 @@ receptor.on( 'hormone', ( name, hormone ) => { ... } );
 Everytime a hormone is received, this event will be fired.
 
 
-#### Event: hormoneExpired
+#### Event: hormoneExpiration
 
 ``` javascript
-receptor.on( 'hormoneExpired', ( name, hormone ) => { ... } );
+receptor.on( 'hormoneExpiration', ( name, hormone ) => { ... } );
 ```
 
 If a received hormone gets older than the specified freshness, this event will be emitted.
@@ -338,10 +351,10 @@ receptor.on( 'hormoneError', ( name, hormone ) => { ... } );
 This event is emitted if a hormone changed its error value evaluated by the check script and the error is larger than 0.
 
 
-#### Event: hormoneRecover
+#### Event: hormoneRecovery
 
 ``` javascript
-receptor.on( 'hormoneRecover', ( name, hormone ) => { ... } );
+receptor.on( 'hormoneRecovery', ( name, hormone ) => { ... } );
 ```
 
 This event is emitted if a hormone changed its error value evaluated by the check script and the error is less or equal 0.
@@ -356,13 +369,13 @@ receptor.on( 'error', ( error ) => { ... } );
 This will be emitted if a local error occured. We've done something wrong!
 
 
-#### Event: receiveError
+#### Event: receptionError
 
 ``` javascript
-receptor.on( 'receiveError', ( error ) => { ... } );
+receptor.on( 'receptionError', ( error ) => { ... } );
 ```
 
-This will be emitted if an error occured while processing data that we received. Someone else has done something wrong. We might want to log this, but someone else must solve this problem.
+This will be emitted if an error occured while processing data that we received. Someone else has probably done something wrong. We might want to log this, but someone else must solve this problem.
 
 
 #### Property: hormones
@@ -383,10 +396,10 @@ let expiredHormones = receptor.expiredHormones;
 An array of the latest received hormones that expired.
 
 
-#### Property: errorHormones
+#### Property: erroneousHormones
 
 ``` javascript
-let errorHormones = receptor.errorHormones;
+let erroneousHormones = receptor.erroneousHormones;
 ```
 
 An array of the latest received hormones whose error value is larger than 0.
@@ -401,10 +414,10 @@ let goodHormones = receptor.goodHormones;
 An array of the latest received hormones that have not expired and whose error value is less or equal than 0.
 
 
-#### Method: destroy
+#### Method: shutdown
 
 ``` javascript
-receptor.destroy();
+receptor.shutdown();
 ```
 
 Unsubcribes from all hormone sources and removes the receptor. A promise is returned, that will be resolved if the receptor has been successfully undefined.

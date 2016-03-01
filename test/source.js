@@ -99,7 +99,7 @@ describe( "Class Source", () => {
 			try {
 				assert.strictEqual( es._lastTopic, 'hormone/' + data.min.name );
 				assert.strictEqual( es._lastPayload, data.min.hormone[0].payload );
-				s.destroy();
+				s.shutdown();
 				done();
 			} catch( e ) {
 				done( e );
@@ -119,7 +119,7 @@ describe( "Class Source", () => {
 		} );
 
 		setTimeout( () => {
-			s.destroy();
+			s.shutdown();
 			done();
 		}, 1000 );
 
@@ -140,7 +140,7 @@ describe( "Class Source", () => {
 						try{
 							assert.strictEqual( es._lastTopic, 'hormone/' + data.max.name );
 							assert.strictEqual( es._lastPayload, data.max.hormone[0].payload );
-							s.destroy();
+							s.shutdown();
 							done();
 						} catch( e ) {
 							done( e );
