@@ -145,10 +145,18 @@ es.on( 'error', ( error ) => { ... } );
 If an error occurs in the local Endocrine System instance or its glands or receptors, this event will be emitted.
 
 
+#### Event: connecting
+
+``` javascript
+es.on( 'connecting', ( url ) => { ... } );
+```
+
+Will be emitted if the tries to connect to stated url. The url is the result of the discovery.
+
 #### Event: online
 
 ``` javascript
-es.on( 'online', () => { ... } );
+es.on( 'online', ( url ) => { ... } );
 ```
 
 Will be emitted if the system goes online.
