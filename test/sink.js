@@ -501,7 +501,7 @@ describe( "Class Sink", () => {
 			}
 		} );
 
-		s.on( 'hormoneExpired', ( name, hormone ) => {
+		s.on( 'hormoneExpiration', ( name, hormone ) => {
 			try {
 				assert.equal( name, data.max.name );
 				assert.equal( s.hormones.length, 1 );
@@ -550,7 +550,7 @@ describe( "Class Sink", () => {
 			setTimeout( done, 400 );
 		} );
 
-		s.on( 'hormoneExpired', ( name, hormone ) => {
+		s.on( 'hormoneExpiration', ( name, hormone ) => {
 			done( new Error( "This must not happen!" ) );
 		} );
 

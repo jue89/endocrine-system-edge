@@ -81,7 +81,7 @@ es.newReceptor( '+' )
   .on( 'undefined', ( name ) => {
     console.log( 'Removed host:', name );
   } )
-  .on( 'hormoneExpired', ( name ) => {
+  .on( 'hormoneExpiration', ( name ) => {
     console.log( 'We lost a host:', name );
   } );
 
@@ -314,10 +314,10 @@ receptor.on( 'hormone', ( name, hormone ) => { ... } );
 Everytime a hormone is received, this event will be fired.
 
 
-#### Event: hormoneExpired
+#### Event: hormoneExpiration
 
 ``` javascript
-receptor.on( 'hormoneExpired', ( name, hormone ) => { ... } );
+receptor.on( 'hormoneExpiration', ( name, hormone ) => { ... } );
 ```
 
 If a received hormone gets older than the specified freshness, this event will be emitted.
