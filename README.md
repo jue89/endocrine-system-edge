@@ -129,6 +129,8 @@ Connects to an [Endocrine System Core](https://github.com/jue89/endocrine-system
  * ```core```: Array of discovery services. The services will be used sequentially until the core has been discovered. The array takes functions, that returns a promise, or strings that will be interpreted as URL.
  * ```prefix```: (optional) Prefix for all glands.
  * ```ignoreTimedrift```: (optional) If set to true, the system won't check the accuracy of the local time.
+ * ```definitionResendInterval```: (optional) The interval in seconds between the hormone definitions are resend. Default: 21600s (6h)
+ * ```reconnectTimeout```: (optional) Amount of seconds until the core will be rediscovered after a lost connection. If you are using a static Core address without any fancy discovery things, you want to set this value to ```null```. A reconnect to the same known Core will take place anyway. Warning: Inflight hormones will be destroyed. Default: 30s
 
 
 ### Class: Endocrine System
