@@ -156,10 +156,12 @@ describe( "Class EndocrineSystem", function() {
 
 	it( "should use discovery functions for obtaining core address", ( done ) => {
 
+		const url = 'mqtts://127.0.0.1:8888'
+
 		// Function will resolve at the 2nd call
 		let a_cnt = 0;
 		function a() {
-			if( ++a_cnt == 2 ) return Promise.resolve( 'mqtts://127.0.0.1:8888' );
+			if( ++a_cnt == 2 ) return Promise.resolve( url );
 			return Promise.reject();
 		}
 
@@ -177,15 +179,21 @@ describe( "Class EndocrineSystem", function() {
 			rejectUnauthorized: false
 		} );
 
-		es.on( 'online', () => {
+		es.on( 'online', ( env ) => {
 			try {
+				assert.strictEqual( env.url, url );
 				assert.strictEqual( a_cnt, 2 );
 				assert.strictEqual( fp, 'cd:f8:9b:cc:05:8a:c4:f3:a0:67:4c:6f:d6:84:84:87:d2:d9:2e:e9:34:54:b8:b3:da:de:96:52:1c:18:b3:ca' );
 				es.shutdown();
 			} catch( e ) { done( e ); }
 		} );
 
-		es.on( 'offline', () => done() );
+		es.on( 'offline', ( env ) => {
+			try {
+				assert.strictEqual( env.url, url );
+				done();
+			} catch( e ) { done( e ); }
+		} );
 
 	} );
 
