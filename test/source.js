@@ -74,17 +74,19 @@ describe( "Class Source", () => {
 
 		let s = new Source( es, 'test', { dataFormat: [ { name: 'test', type: 'boolean' } ] } );
 
-		s.on( 'defined', () => {
+		s.on( 'newGland', ( env ) => {
 			try {
-				assert.equal( es._lastTopic, 'definition/test' );
+				assert.strictEqual( env.name, 'test' );
+				assert.strictEqual( es._lastTopic, 'definition/test' );
 				s.send( { test: true } );
-			} catch( e ) {
-				done( new Error( "Nope!" ) );
-			}
+			} catch( e ) { done( e ); }
 		} );
 
-		s.on( 'sent', () => {
-			done();
+		s.on( 'sentHormone', ( env ) => {
+			try {
+				assert.strictEqual( env.name, 'test' );
+				done();
+			} catch( e ) { done( e ); }
 		} );
 
 	} );
@@ -94,8 +96,7 @@ describe( "Class Source", () => {
 		let config = {}; Object.assign( config, data.min.config );
 		let s = new Source( es, data.min.name, config );
 
-		s.on( 'sent', () => {
-
+		s.on( 'sentHormone', () => {
 			try {
 				assert.strictEqual( es._lastTopic, 'hormone/' + data.min.name );
 				assert.strictEqual( es._lastPayload, data.min.hormone[0].payload );
@@ -104,7 +105,6 @@ describe( "Class Source", () => {
 			} catch( e ) {
 				done( e );
 			}
-
 		} );
 
 	} );
@@ -114,7 +114,7 @@ describe( "Class Source", () => {
 		let config = {}; Object.assign( config, data.max.config );
 		let s = new Source( es, data.max.name, config );
 
-		s.on( 'sent', () => {
+		s.on( 'sentHormone', () => {
 			done( new Error( "This should not happen!" ) );
 		} );
 
@@ -129,14 +129,14 @@ describe( "Class Source", () => {
 
 		let config = {}; Object.assign( config, data.max.config );
 		let s = new Source( es, data.max.name, config );
-		s.on( 'defined', () => {
+		s.on( 'newGland', () => {
 			s.send( data.max.hormone[0].data ).then( () => {
 
 				try{
 					assert.strictEqual( es._lastTopic, 'hormone/' + data.max.name );
 					assert.strictEqual( es._lastPayload, data.max.hormone[0].payload );
 
-					s.on( 'sent', () => {
+					s.on( 'sentHormone', () => {
 						try{
 							assert.strictEqual( es._lastTopic, 'hormone/' + data.max.name );
 							assert.strictEqual( es._lastPayload, data.max.hormone[0].payload );

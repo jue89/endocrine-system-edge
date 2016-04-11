@@ -7,6 +7,7 @@ class ESMock {
 		this._cert = cert;
 		this._ca = ca;
 		this._onsub = {};
+		this._definitionResendInterval = 60;
 	}
 
 	_publish( topic, payload ) {
