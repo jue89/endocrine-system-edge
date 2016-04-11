@@ -90,8 +90,8 @@ describe( "Class Sink", () => {
 
 		let s = new Sink( es, data.min.name );
 
-		s.on( 'receptionError', ( e ) => {
-			/*console.log(e);*/
+		s.on( 'receptionError', ( err, env ) => {
+			/*console.log(err,env);*/
 			done();
 		} );
 
@@ -176,10 +176,11 @@ describe( "Class Sink", () => {
 
 		let s = new Sink( es, data.min.name );
 
-		s.on( 'defined', ( name, definition ) => {
+		s.on( 'defined', ( env ) => {
 			try {
-				assert.strictEqual( name, data.min.name );
-				assert.deepStrictEqual( definition.data, data.min.definition.data );
+				assert.strictEqual( env.name, data.min.name );
+				assert.deepStrictEqual( env.dataFormat, data.min.definition.dataFormat );
+				assert.deepStrictEqual( env.origin, data.min.origin );
 
 				// Send empty message to remove definition
 				defHandler( 'definition/' + data.min.name, '' );
@@ -188,9 +189,11 @@ describe( "Class Sink", () => {
 			}
 		} );
 
-		s.on( 'undefined', ( name ) => {
+		s.on( 'undefined', ( env ) => {
 			try {
-				assert.strictEqual( name, data.min.name );
+				assert.strictEqual( env.name, data.min.name );
+				assert.deepStrictEqual( env.dataFormat, data.min.definition.dataFormat );
+				assert.deepStrictEqual( env.origin, data.min.origin );
 				done();
 			} catch( e ) {
 				done( e );
@@ -215,10 +218,11 @@ describe( "Class Sink", () => {
 
 		let s = new Sink( es, data.min.name );
 
-		s.on( 'defined', ( name, definition ) => {
+		s.on( 'defined', ( env ) => {
 			try {
-				assert.strictEqual( name, data.min.name );
-				assert.deepStrictEqual( definition.data, data.min.definition.data );
+				assert.strictEqual( env.name, data.min.name );
+				assert.deepStrictEqual( env.dataFormat, data.min.definition.dataFormat );
+				assert.deepStrictEqual( env.origin, data.min.origin );
 
 				// Send definition again
 				defHandler( 'definition/' + data.min.name, data.min.definition.payload );
@@ -228,14 +232,15 @@ describe( "Class Sink", () => {
 
 		} );
 
-		s.on( 'undefined', ( name ) => {
+		s.on( 'undefined', () => {
 			done( new Error("Nope!") );
 		} );
 
-		s.on( 'refreshed', ( name, definition ) => {
+		s.on( 'refreshed', ( env ) => {
 			try {
-				assert.strictEqual( name, data.min.name );
-				assert.deepStrictEqual( definition.data, data.min.definition.data );
+				assert.strictEqual( env.name, data.min.name );
+				assert.deepStrictEqual( env.dataFormat, data.min.definition.dataFormat );
+				assert.deepStrictEqual( env.origin, data.min.origin );
 
 				done();
 			} catch( e ) {
@@ -261,17 +266,17 @@ describe( "Class Sink", () => {
 
 		let s = new Sink( es, data.min.name );
 
-		s.once( 'defined', ( name, definition ) => {
+		s.once( 'defined', ( env ) => {
 			try {
-				assert.strictEqual( name, data.min.name );
-				assert.deepStrictEqual( definition.data, data.min.definition.data );
+				assert.strictEqual( env.name, data.min.name );
+				assert.deepStrictEqual( env.dataFormat, data.min.definition.dataFormat );
+				assert.deepStrictEqual( env.origin, data.min.origin );
 
 				// Send new definition
 				defHandler( 'definition/' + data.min.name, data.max.definition.payload );
 			} catch( e ) {
 				done( e );
 			}
-
 
 			// Try to observe unsubscribe and subscribe again
 			let unsub = false;
@@ -311,10 +316,12 @@ describe( "Class Sink", () => {
 		s.on( 'receptionError', done );
 		s.on( 'error', done );
 
-		s.on( 'hormone', ( name, hormone ) => {
+		s.on( 'hormone', ( env ) => {
 			try {
-				assert.strictEqual( name, data.max.name );
-				assert.deepStrictEqual( hormone.data, data.max.hormone[0].data );
+				assert.strictEqual( env.name, data.max.name );
+				assert.deepStrictEqual( env.data, data.max.hormone[0].data );
+				assert.deepStrictEqual( env.origin, data.max.origin );
+
 				assert.strictEqual( s.hormones.length, 1 );
 				assert.strictEqual( s.expiredHormones.length, 0 );
 				assert.strictEqual( s.erroneousHormones.length, 0 );
@@ -324,15 +331,14 @@ describe( "Class Sink", () => {
 					sentAt: data.max.hormone[0].timestamp,
 					receivedAt: data.max.hormone[0].timestamp + 100,
 					stateChangedAt: data.max.hormone[0].timestamp + 100,
-					err: 0,
+					error: 0,
 					isFresh: true,
 					data: data.max.hormone[0].data,
 					dataFormat: data.max.definition.dataFormat
 				} );
+
 				done();
-			} catch( e ) {
-				done( e );
-			}
+			} catch( e ) { done( e ); }
 		} );
 
 	} );
@@ -366,7 +372,7 @@ describe( "Class Sink", () => {
 		s.on( 'receptionError', done );
 		s.on( 'error', done );
 
-		s.once( 'hormone', ( name, hormone ) => {
+		s.once( 'hormone', () => {
 			s.once( 'hormone', () => done( new Error("Nope") ) );
 			// Emit the hormone a second time
 			hormoneHandler( 'hormone/' + data.max.name, data.max.hormone[0].payload );
@@ -404,11 +410,12 @@ describe( "Class Sink", () => {
 		s.on( 'receptionError', done );
 		s.on( 'error', done );
 
-		s.once( 'hormone', ( name, hormone ) => {
-			s.once( 'hormone', (name, hormone) => {
+		s.once( 'hormone', () => {
+			s.once( 'hormone', ( env ) => {
 				try {
-					assert.strictEqual( name, data.max.name );
-					assert.deepStrictEqual( hormone.data, data.max.hormone[1].data );
+					assert.strictEqual( env.name, data.max.name );
+					assert.deepStrictEqual( env.data, data.max.hormone[1].data );
+					assert.deepStrictEqual( env.origin, data.max.origin );
 					done();
 				} catch( e ) {
 					done( e );
@@ -446,11 +453,11 @@ describe( "Class Sink", () => {
 		s.on( 'receptionError', done );
 		s.on( 'error', done );
 
-		s.on( 'hormoneError', ( name, hormone ) => {
+		s.on( 'hormoneError', ( env ) => {
 			try {
-				assert.strictEqual( name, data.max.name );
-				assert.strictEqual( hormone.error, data.max.hormoneErr[0].data.Number );
-				assert.deepStrictEqual( hormone.data, data.max.hormoneErr[0].data );
+				assert.strictEqual( env.name, data.max.name );
+				assert.strictEqual( env.error, data.max.hormoneErr[0].data.Number );
+				assert.deepStrictEqual( env.data, data.max.hormoneErr[0].data );
 				assert.strictEqual( s.hormones.length, 1 );
 				assert.strictEqual( s.expiredHormones.length, 0 );
 				assert.strictEqual( s.erroneousHormones.length, 1 );
@@ -489,9 +496,9 @@ describe( "Class Sink", () => {
 		s.on( 'receptionError', done );
 		s.on( 'error', done );
 
-		s.on( 'hormone', ( name, hormone ) => {
+		s.on( 'hormone', ( env ) => {
 			try {
-				assert.equal( name, data.max.name );
+				assert.equal( env.name, data.max.name );
 				assert.equal( s.hormones.length, 1 );
 				assert.equal( s.expiredHormones.length, 0 );
 				assert.equal( s.erroneousHormones.length, 0 );
@@ -501,9 +508,9 @@ describe( "Class Sink", () => {
 			}
 		} );
 
-		s.on( 'hormoneExpiration', ( name, hormone ) => {
+		s.on( 'hormoneExpiration', ( env ) => {
 			try {
-				assert.equal( name, data.max.name );
+				assert.equal( env.name, data.max.name );
 				assert.equal( s.hormones.length, 1 );
 				assert.equal( s.expiredHormones.length, 1 );
 				assert.equal( s.erroneousHormones.length, 0 );
@@ -545,12 +552,12 @@ describe( "Class Sink", () => {
 		s.on( 'receptionError', done );
 		s.on( 'error', done );
 
-		s.on( 'hormone', ( name, hormone ) => {
+		s.on( 'hormone', () => {
 			defHandler( 'definition/' + data.max.name, '' );
 			setTimeout( done, 400 );
 		} );
 
-		s.on( 'hormoneExpiration', ( name, hormone ) => {
+		s.on( 'hormoneExpiration', () => {
 			done( new Error( "This must not happen!" ) );
 		} );
 
