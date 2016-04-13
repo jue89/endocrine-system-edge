@@ -209,7 +209,7 @@ describe( "Class EndocrineSystem", function() {
 
 		es.on( 'online', () => {
 			try {
-				assert.equal( es.online, true );
+				assert.strictEqual( es.online, true );
 			} catch( e ) { done( e ); }
 			es.newGland( 'test' );
 			es.newReceptor( '#' );
@@ -218,7 +218,7 @@ describe( "Class EndocrineSystem", function() {
 
 		es.on( 'offline', () => {
 			try {
-				assert.equal( es.online, false );
+				assert.strictEqual( es.online, false );
 				done();
 			} catch( e ) { done( e ); }
 		} );
@@ -279,8 +279,8 @@ describe( "Class EndocrineSystem", function() {
 
 		es._subscribe( 'test/+/test', ( topic, message ) => {
 			try {
-				assert.equal( topic, 'test/da/test' );
-				assert.equal( message, '42' );
+				assert.strictEqual( topic, 'test/da/test' );
+				assert.strictEqual( message, '42' );
 				done();
 			} catch( e ) {
 				done( e );
@@ -288,6 +288,62 @@ describe( "Class EndocrineSystem", function() {
 		} ).then( () => {
 			es._publish( 'test/da/test', '42' )
 		} )
+
+	} );
+
+	it( "should subscribe with two instances to a topic, publish / receive a message, then one instance unsubscribes and the other still reveives messages", ( done ) => {
+
+		function pTimeout( msec ) { return new Promise( ( resolve ) => {
+			// https://www.youtube.com/watch?v=IhchfhxvPKI
+			setTimeout( resolve, msec );
+		} ); }
+
+		let es = new EndocrineSystem( {
+			core: 'mqtts://127.0.0.1:8888',
+			cert: pki.cert,
+			key: pki.key,
+			ca: pki.ca,
+			rejectUnauthorized: false
+		} );
+
+		let lastTopic1, lastTopic2, lastMessage1, lastMessage2;
+		let handle1, handle2;
+		Promise.all( [
+			es._subscribe( 'test', ( topic, message ) => {
+				lastTopic1 = topic;
+				lastMessage1 = message;
+			} ),
+			es._subscribe( 'test', ( topic, message ) => {
+				lastTopic2 = topic;
+				lastMessage2 = message;
+			} )
+		] ).then( ( handles ) => {
+			console.log(handles);
+			handle1 = handles[ 0 ];
+			handle2 = handles[ 1 ];
+
+			return es._publish( 'test', '42' );
+		} ).then( () => pTimeout( 200 ) ).then( () => {
+			// After 200ms every should taken place ... bad coding style though
+			assert.strictEqual( lastTopic1, 'test' );
+			assert.strictEqual( lastTopic2, 'test' );
+			assert.strictEqual( lastMessage1, '42' );
+			assert.strictEqual( lastMessage2, '42' );
+
+			// Unsubscribe first subscription
+			return es._unsubscribe( handle1 );
+		} ).then( () => {
+			return es._publish( 'test', '43' );
+		} ).then( () => pTimeout( 200 ) ).then( () => {
+			// After 200ms every should taken place ... bad coding style though
+			assert.strictEqual( lastTopic1, 'test' );
+			assert.strictEqual( lastTopic2, 'test' );
+			assert.strictEqual( lastMessage1, '42' );
+			assert.strictEqual( lastMessage2, '43' );
+
+			// Unsubscribe second subscription
+			return es._unsubscribe( handle2 );
+		} ).then( done ).catch( done );
 
 	} );
 
