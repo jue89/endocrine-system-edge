@@ -47,7 +47,7 @@ let loadGland = es.newGland(
   {
     description: 'Current Load',        // Human-readable description
     freshness: 60,                      // Maximum age of received hormes
-    autoRefresh: false                  // The system won't take care of emitting this hormone
+    autoRefresh: false,                 // The system won't take care of emitting this hormone
     dataFormat: [                       // Define data points included in the hormone
       { name: 'load1', description: '1 Minute', type: 'number' },
       { name: 'load5', description: '5 Minutes', type: 'number' },
@@ -75,27 +75,27 @@ setInterval( () => {
 
 // - Heartbeats
 es.newReceptor( '+' )
-  .on( 'defined', ( name ) => {
-    console.log( 'New host:', name );
+  .on( 'defined', ( env ) => {
+    console.log( 'New host:', env.name );
   } )
-  .on( 'undefined', ( name ) => {
-    console.log( 'Removed host:', name );
+  .on( 'undefined', ( env ) => {
+    console.log( 'Removed host:', env.name );
   } )
-  .on( 'hormoneExpiration', ( name ) => {
-    console.log( 'We lost a host:', name );
+  .on( 'hormoneExpiration', ( env ) => {
+    console.log( 'We lost a host:', env.name );
   } );
 
 // - Load
 es.newReceptor( '+/load' )
-  .on( 'hormoneError', ( name, hormone ) => {
+  .on( 'hormoneError', ( env ) => {
     // The first part of the hormone name is the host name
-    let host = name.substr( 0, name.indexOf( '/' ) );
-    console.log( 'High load at host', name, hormone.data );
+    let host = env.name.substr( 0, env.name.indexOf( '/' ) );
+    console.log( 'High load at host', env.name, env.data );
   } )
-  .on( 'hormoneRecovery', ( name, hormone ) => {
+  .on( 'hormoneRecovery', ( env ) => {
     // The first part of the hormone name is the host name
-    let host = name.substr( 0, name.indexOf( '/' ) );
-    console.log( 'Load okay at host', name, hormone.data );
+    let host = env.name.substr( 0, env.name.indexOf( '/' ) );
+    console.log( 'Load okay at host', env.name, env.data );
   } );
 
 
