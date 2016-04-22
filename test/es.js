@@ -318,7 +318,6 @@ describe( "Class EndocrineSystem", function() {
 				lastMessage2 = message;
 			} )
 		] ).then( ( handles ) => {
-			console.log(handles);
 			handle1 = handles[ 0 ];
 			handle2 = handles[ 1 ];
 
