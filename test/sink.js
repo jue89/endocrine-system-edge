@@ -331,7 +331,9 @@ describe( "Class Sink", () => {
 					sentAt: data.max.hormone[0].timestamp,
 					receivedAt: data.max.hormone[0].timestamp + 100,
 					stateChangedAt: data.max.hormone[0].timestamp + 100,
+					isOK: true,
 					error: 0,
+					freshness: 0.9,
 					isFresh: true,
 					data: data.max.hormone[0].data,
 					dataFormat: data.max.definition.dataFormat
