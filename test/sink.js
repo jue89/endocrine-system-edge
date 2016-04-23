@@ -511,12 +511,27 @@ describe( "Class Sink", () => {
 		} );
 
 		s.on( 'hormoneExpiration', ( env ) => {
+			// This is just fake time. We need to make a little time warp to the exact
+			// expiration time.
+			time.set( data.max.hormone[0].timestamp + 1000 );
 			try {
 				assert.equal( env.name, data.max.name );
 				assert.equal( s.hormones.length, 1 );
 				assert.equal( s.expiredHormones.length, 1 );
 				assert.equal( s.erroneousHormones.length, 0 );
 				assert.equal( s.goodHormones.length, 0 );
+				assert.deepStrictEqual( s.hormones[0], {
+					name: data.max.name,
+					sentAt: data.max.hormone[0].timestamp,
+					receivedAt: data.max.hormone[0].timestamp + 900,
+					stateChangedAt: data.max.hormone[0].timestamp + 900, // This won't change because of the fake time.
+					isOK: true,
+					error: 0,
+					freshness: 0,
+					isFresh: false,
+					data: data.max.hormone[0].data,
+					dataFormat: data.max.definition.dataFormat
+				} );
 				done();
 			} catch( e ) {
 				done( e );
