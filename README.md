@@ -235,6 +235,8 @@ Shuts down the endocrine system. All glands will be undefined, so they will disa
 
 The Method newGland will return an instance of Gland.
 
+All emitted events are also forwarded to their parent ES instance.
+
 #### Event: newGland
 
 ``` javascript
@@ -307,6 +309,7 @@ Removes the gland. A promise is returned, that will be resolved if the gland has
 
 The Method newReceptor will return an instance of Receptor and listens to hormone definitions.
 
+All emitted events are also forwarded to their parent ES instance.
 
 #### Event: newReceptor
 
@@ -316,6 +319,15 @@ receptor.on( 'newReceptor', ( error, env ) => { ... } );
 
 This will be emitted if the receptor has been successfully set up. ```env``` will let you know:
  * ```filter```: The receptor filter.
+
+
+#### Event: removedReceptor
+
+``` javascript
+gland.on( 'removedReceptor', ( env ) => { ... } );
+```
+
+Is emitted if the receptor has been shut down. ```env``` has the same format as Event 'newReceptor'.
 
 
 #### Event: defined
