@@ -346,4 +346,36 @@ describe( "Class EndocrineSystem", function() {
 
 	} );
 
+	it( "should forward emitted events of gland", ( done ) => {
+
+		let es = new EndocrineSystem( {
+			core: 'mqtts://127.0.0.1:8888',
+			cert: pki.cert,
+			key: pki.key,
+			ca: pki.ca,
+			rejectUnauthorized: false
+		} );
+
+		es.on( 'removedGland', () => done() );
+
+		es.newGland( 'test', {} ).shutdown();
+
+	} );
+
+	it( "should forward emitted events of receptor", ( done ) => {
+
+		let es = new EndocrineSystem( {
+			core: 'mqtts://127.0.0.1:8888',
+			cert: pki.cert,
+			key: pki.key,
+			ca: pki.ca,
+			rejectUnauthorized: false
+		} );
+
+		es.on( 'removedReceptor', () => done() );
+
+		es.newReceptor( 'test', {} ).shutdown();
+
+	} );
+
 } );

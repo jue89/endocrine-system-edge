@@ -9,7 +9,12 @@ class SourceMock extends events.EventEmitter {
 	}
 
 	shutdown() {
+
+		this.emit( 'removedGland' );
+		setImmediate( () => this.removeAllListeners() );
+
 		return Promise.resolve();
+
 	}
 
 }

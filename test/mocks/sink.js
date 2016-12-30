@@ -9,6 +9,10 @@ class SinkMock extends events.EventEmitter {
 	}
 
 	shutdown() {
+
+		this.emit( 'removedReceptor' );
+		setImmediate( () => this.removeAllListeners() );
+
 		return Promise.resolve();
 	}
 
